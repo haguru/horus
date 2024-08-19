@@ -5,7 +5,7 @@ import (
 )
 
 type Crumb struct {
-	Location models.Point
+	Location models.Point `bson:"location" json:"location"`
 	Message  string `bson:"message,omitempty" json:"message,omitempty"`
 	User     string `bson:"user,omitempty" json:"user,omitempty"`
 }

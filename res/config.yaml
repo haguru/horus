@@ -1,0 +1,10 @@
+name: crumbdb
+loglevel: debug
+database:
+  uri: mongodb://localhost:27017/?maxPoolSize=20&w=majority
+  name: horus
+  collection: crumbs
+  options:
+    setstrict: true
+    setdeprecationerrors: true
+    

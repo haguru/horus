@@ -27,7 +27,7 @@ func main() {
 			panic(err)
 		}
 	}()
-	dbName, collName := "test","crumbs"
+	dbName, collName := "test", "crumbs"
 	err = db.CreateSpatialIndex("test", "crumbs", "2dsphere")
 	if err != nil {
 		fmt.Printf("failed to create spatial index, %v\n", err)
@@ -37,37 +37,36 @@ func main() {
 		Location: mongoModels.Point{
 			Type:        "Point",
 			Coordinates: []float64{-122.64579888741955, 45.691752785517224},
+			Message:     "testing",
 		},
+		Message: "testing",
+		User:    "bdkmv",
 	}
 	err = db.InsertRecord(dbName, collName, []interface{}{data})
 	if err != nil {
 		panic(err)
 	}
 
-	// newpoint := mongoModels.Point{
-	// 	Type:        "Point",
-	// 	Coordinates: []float64{ -122.64585552120147, 45.69219926469911,},
-	// }
 
-	// dataoutput, err := db.SpaitalQuery(newpoint,dbName, collName)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	
-	dataoutput, err := db.FindAll(dbName, collName)
+	newpoint := mongoModels.Point{
+		Type:        "Point",
+		Coordinates: []float64{-122.64585552120147, 45.69219926469911},
+	}
+
+	fmt.Println("spatial query--------------------")
+
+	dataoutput, err := db.SpaitalQuery(newpoint, dbName, collName)
 	if err != nil {
 		panic(err)
 	}
-
-	fmt.Println(dataoutput)
-	for _,bsonCrumb := range dataoutput{
+	for _, bsonCrumb := range dataoutput {
 		crumb := &models.Crumb{}
 		d, err := bson.Marshal(bsonCrumb)
-		if err != nil{
+		if err != nil {
 			panic(err)
 		}
-		err = bson.Unmarshal(d,crumb)
-		if err != nil{
+		err = bson.Unmarshal(d, crumb)
+		if err != nil {
 			panic(err)
 		}
 		fmt.Println(crumb)

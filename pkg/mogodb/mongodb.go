@@ -81,7 +81,7 @@ func (db MongoDB) Disconnect(context context.Context) error {
 func (db MongoDB) CreateSpatialIndex(databaseName string, collectionName string, spatialType string) error {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 	indexModel := mongo.IndexModel{
-		Keys: bson.D{{Key: "location.geo", Value: spatialType}},
+		Keys: bson.D{{Key: "location", Value: spatialType}},
 	}
 
 	_, err := collection.Indexes().CreateOne(context.TODO(), indexModel)
@@ -130,12 +130,12 @@ func (db MongoDB) FindAll(databaseName string, collectionName string) ([]bson.D,
 	}
 	var results []bson.D
 	for cur.Next(context.TODO()) {
-        //Create a value into which the single document can be decoded
-        var elem bson.D
-        err := cur.Decode(&elem)
-        if err != nil {
-            return nil,err
-        }
+		// Create a value into which the single document can be decoded
+		var elem bson.D
+		err := cur.Decode(&elem)
+		if err != nil {
+			return nil, err
+		}
 		results = append(results, elem)
 	}
 	return results, nil
@@ -143,7 +143,7 @@ func (db MongoDB) FindAll(databaseName string, collectionName string) ([]bson.D,
 
 func (db MongoDB) spatialFilter(point models.Point) bson.D {
 	return bson.D{
-		{Key: "location.geo", Value: bson.D{
+		{Key: "location", Value: bson.D{
 			{Key: "$near", Value: bson.D{
 				{Key: "$geometry", Value: point},
 				{Key: "$maxDistance", Value: MAX_DISTANCE},
