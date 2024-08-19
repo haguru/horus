@@ -1,7 +1,8 @@
 name: crumbdb
 loglevel: debug
 database:
-  uri: mongodb://localhost:27017/?maxPoolSize=20&w=majority
+  host: localhost #mongodb://localhost:27017/?maxPoolSize=20&w=majority
+  port: 27017
   name: horus
   collection: crumbs
   options:

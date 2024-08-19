@@ -12,21 +12,24 @@ import (
 )
 
 const (
-	MAX_DISTANCE = 100
+	MAX_DISTANCE      = 100
 	SPATIAL_INDEX_KEY = "location"
 )
 
 type MongoDB struct {
 	Uri        string
+	Host       string
+	Port       int
 	ServerOpts *options.ServerAPIOptions
 	Client     *mongo.Client
 	// databaseName string
 	// context    context.Context
 }
 
-func NewMongoDB(uri string, opts *options.ServerAPIOptions) (interfaces.Client, error) {
+func NewMongoDB(host string, port int, opts *options.ServerAPIOptions) (interfaces.Client, error) {
 	db := &MongoDB{
-		Uri:        uri,
+		Host:       host,
+		Port:       port,
 		ServerOpts: opts,
 	}
 	client, err := db.Connect()
@@ -44,7 +47,8 @@ func (db MongoDB) Connect() (*mongo.Client, error) {
 	if db.ServerOpts != nil {
 		serverAPI = db.ServerOpts
 	}
-	opts := options.Client().ApplyURI(db.Uri).SetServerAPIOptions(serverAPI)
+	uri := fmt.Sprintf("mongodb://%v:%v/?maxPoolSize=20&w=majority",db.Host,db.Port)
+	opts := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
 
 	// Creat new client
 	var err error

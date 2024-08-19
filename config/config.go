@@ -17,7 +17,8 @@ type ServiceConfig struct {
 }
 
 type Database struct {
-	Uri        string        `yaml:"uri"`
+	Host       string        `yaml:"host"`
+	Port       int           `yaml:"port"`
 	Name       string        `yaml:"name"`
 	Collection string        `yaml:"collection"`
 	Options    ServerOptions `yaml:"options"`

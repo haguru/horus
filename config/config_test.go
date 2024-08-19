@@ -22,8 +22,10 @@ func TestReadLocalConfig(t *testing.T) {
 			},
 			want: &ServiceConfig{
 				Name: "crumbdb",
+				LogLevel: "debug",
 				Database: Database{
-					Uri: "mongodb://localhost:27017/?maxPoolSize=20&w=majority",
+					Host: "localhost",
+					Port: 27017,
 					Name: "horus",
 					Collection: "crumbs",
 					Options: ServerOptions{

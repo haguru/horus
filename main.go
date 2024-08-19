@@ -17,7 +17,7 @@ import (
 // }
 
 func main() {
-	db, err := mogodb.NewMongoDB("mongodb://localhost:27017/?maxPoolSize=20&w=majority", nil)
+	db, err := mogodb.NewMongoDB("localhost",27017, nil)
 	if err != nil {
 		fmt.Printf("failed to connect, %v\n", err)
 	}
