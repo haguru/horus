@@ -13,6 +13,7 @@ import (
 
 const (
 	MAX_DISTANCE = 100
+	SPATIAL_INDEX_KEY = "location"
 )
 
 type MongoDB struct {
@@ -81,7 +82,7 @@ func (db MongoDB) Disconnect(context context.Context) error {
 func (db MongoDB) CreateSpatialIndex(databaseName string, collectionName string, spatialType string) error {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 	indexModel := mongo.IndexModel{
-		Keys: bson.D{{Key: "location", Value: spatialType}},
+		Keys: bson.D{{Key: SPATIAL_INDEX_KEY, Value: spatialType}},
 	}
 
 	_, err := collection.Indexes().CreateOne(context.TODO(), indexModel)
@@ -143,7 +144,7 @@ func (db MongoDB) FindAll(databaseName string, collectionName string) ([]bson.D,
 
 func (db MongoDB) spatialFilter(point models.Point) bson.D {
 	return bson.D{
-		{Key: "location", Value: bson.D{
+		{Key: SPATIAL_INDEX_KEY, Value: bson.D{
 			{Key: "$near", Value: bson.D{
 				{Key: "$geometry", Value: point},
 				{Key: "$maxDistance", Value: MAX_DISTANCE},

@@ -4,18 +4,17 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/haguru/horus/config"
 	"github.com/haguru/horus/pkg/models"
 	"github.com/haguru/horus/pkg/mogodb"
 	mongoModels "github.com/haguru/horus/pkg/mogodb/models"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-type App struct {
-	// lc            logger.LoggingClient
-	appCtx        context.Context
-	serviceConfig config.ServiceConfig
-}
+// type App struct {
+// 	// lc            logger.LoggingClient
+// 	appCtx        context.Context
+// 	serviceConfig config.ServiceConfig
+// }
 
 func main() {
 	db, err := mogodb.NewMongoDB("mongodb://localhost:27017/?maxPoolSize=20&w=majority", nil)
@@ -46,7 +45,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
 
 	newpoint := mongoModels.Point{
 		Type:        "Point",
