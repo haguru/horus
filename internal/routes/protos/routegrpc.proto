@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package crumbdb;
+
+option go_package = "github.com/haguru/horus/internal/routes/protos";
+
+message Crumb {
+    string id = 1;
+    Point location = 2;
+    string user = 3;
+    string messagecrumb = 4;
+
+}
+
+message Point {
+    repeated double coordinates = 1;
+    string type = 2;
+}
+
+message Id{
+    string value = 1;
+}
+
+message Status {
+    int32 value = 1;
+}
+service CrumbDB{
+    rpc Create(Crumb) returns (Id);                 // Create
+    rpc GetCrumbs(Point) returns (stream Crumb);    // Read
+	rpc Update(Crumb) returns (Id);                        // Update
+	rpc Delete(Id) returns (Id);                        // Delete
+}
+

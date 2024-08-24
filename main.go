@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/haguru/horus/pkg/models"
-	"github.com/haguru/horus/pkg/mogodb"
-	mongoModels "github.com/haguru/horus/pkg/mogodb/models"
+	"github.com/haguru/horus/pkg/mongodb"
+	mongoModels "github.com/haguru/horus/pkg/mongodb/models"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -17,7 +17,7 @@ import (
 // }
 
 func main() {
-	db, err := mogodb.NewMongoDB("localhost",27017, nil)
+	db, err := mongodb.NewMongoDB("localhost", 27017, nil)
 	if err != nil {
 		fmt.Printf("failed to connect, %v\n", err)
 	}
@@ -36,12 +36,11 @@ func main() {
 		Location: mongoModels.Point{
 			Type:        "Point",
 			Coordinates: []float64{-122.64579888741955, 45.691752785517224},
-			Message:     "testing",
 		},
 		Message: "testing",
 		User:    "bdkmv",
 	}
-	err = db.InsertRecord(dbName, collName, []interface{}{data})
+	_, err = db.InsertRecord(dbName, collName, data)
 	if err != nil {
 		panic(err)
 	}
@@ -57,6 +56,29 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	d := db.FindOne(dbName,collName,"66cad94c99d236b3235851ab")
+	fmt.Printf("found: %v\n", d)
+
+	update := models.MessageUpdateRequest{
+		Message: "testing_updated",
+	}
+
+	err = db.Update(dbName, collName, "66cad94c99d236b3235851ab", update)
+	if err != nil {
+		panic(err)
+	}
+
+	err = db.Delete(dbName, collName, "66cadbc22158accbeb4cc24d")
+	if err != nil {
+		panic(err)
+	}
+
+	dataoutput, err = db.SpaitalQuery(newpoint, dbName, collName)
+	if err != nil {
+		panic(err)
+	}
+	
 	for _, bsonCrumb := range dataoutput {
 		crumb := &models.Crumb{}
 		d, err := bson.Marshal(bsonCrumb)
