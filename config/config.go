@@ -7,12 +7,13 @@ import (
 )
 
 const (
-	CONFIG_PATH = "../res/config.yaml"
+	CONFIG_PATH = "./res/config.yaml"
 )
 
 type ServiceConfig struct {
 	Name     string   `yaml:"name"`
 	LogLevel string   `yaml:"loglevel"`
+	Port     int   `yaml:"port"`
 	Database Database `yaml:"database"`
 }
 

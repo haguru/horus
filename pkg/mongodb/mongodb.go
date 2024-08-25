@@ -14,6 +14,7 @@ import (
 
 const (
 	MAX_DISTANCE      = 100
+	SPATIAL_INDEX_TYPE = "2dsphere"
 	SPATIAL_INDEX_KEY = "location"
 	_ID = "_id"
 )

@@ -3,6 +3,7 @@ package routes
 import (
 	"context"
 
+	"github.com/edgexfoundry/go-mod-core-contracts/v3/clients/logger"
 	"github.com/haguru/horus/config"
 	pb "github.com/haguru/horus/internal/routes/protos"
 	"github.com/haguru/horus/pkg/models"
@@ -14,9 +15,20 @@ import (
 type Route struct {
 	dbCconfig *config.Database
 	dbClient  interfaces.Client
+	lc        logger.LoggingClient
+	pb.UnimplementedCrumbDBServer
+}
+
+func NewRoute(lc logger.LoggingClient, config *config.Database, dbclient interfaces.Client) *Route{
+	return &Route{
+		dbCconfig: config,
+		dbClient: dbclient,
+		lc: lc,
+	}
 }
 
 func (r *Route) Create(ctx context.Context, crumb *pb.Crumb) (*pb.Id, error) {
+	r.lc.Debugf("received request: %v", crumb)
 	c := models.Crumb{
 		Location: dbModel.Point{
 			Type:        crumb.GetLocation().GetType(),
@@ -34,12 +46,14 @@ func (r *Route) Create(ctx context.Context, crumb *pb.Crumb) (*pb.Id, error) {
 }
 
 func (r *Route) GetCrumbs(point *pb.Point, stream pb.CrumbDB_GetCrumbsServer) error {
+	r.lc.Debugf("received request: %v", point)
 	p := dbModel.Point{
 		Type:        point.GetType(),
 		Coordinates: point.GetCoordinates(),
 	}
 	data, err := r.dbClient.SpaitalQuery(p, r.dbCconfig.Name, r.dbCconfig.Collection)
 	if err != nil {
+		r.lc.Errorf("failed to run spatial query: %v", err)
 		return err
 	}
 	for _, item := range data {
@@ -65,7 +79,7 @@ func (r *Route) GetCrumbs(point *pb.Point, stream pb.CrumbDB_GetCrumbsServer) er
 	return nil
 }
 
-func (r *Route) Update(crumb *pb.Crumb) (*pb.Id, error) {
+func (r *Route) Update(ctx context.Context, crumb *pb.Crumb) (*pb.Id, error) {
 	c := models.MessageUpdateRequest{
 		Message: crumb.GetMessagecrumb(),
 	}
@@ -79,7 +93,7 @@ func (r *Route) Update(crumb *pb.Crumb) (*pb.Id, error) {
 	}, nil
 }
 
-func (r *Route) Delete(id *pb.Id) (*pb.Id, error) {
+func (r *Route) Delete(ctx context.Context, id *pb.Id) (*pb.Id, error) {
 	err := r.dbClient.Delete(r.dbCconfig.Name, r.dbCconfig.Collection, id.GetValue())
 	if err != nil {
 		return nil, err

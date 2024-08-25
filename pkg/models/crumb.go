@@ -3,6 +3,7 @@ package models
 import (
 	"github.com/haguru/horus/pkg/mongodb/models"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	pb "github.com/haguru/horus/internal/routes/protos"
 )
 
 type Crumb struct {
@@ -14,4 +15,8 @@ type Crumb struct {
 
 type MessageUpdateRequest struct {
 	Message string `bson:"message,omitempty" json:"messagecrumb,omitempty"`
+}
+
+type GrpcServer struct {
+	pb.UnimplementedCrumbDBServer
 }
