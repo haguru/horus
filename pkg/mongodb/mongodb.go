@@ -5,17 +5,19 @@ import (
 	"fmt"
 
 	"github.com/haguru/horus/pkg/mongodb/interfaces"
-	"github.com/haguru/horus/pkg/mongodb/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"github.com/edgexfoundry/go-mod-core-contracts/v3/clients/logger"
 )
 
 const (
-	MAX_DISTANCE      = 100
-	SPATIAL_INDEX_KEY = "location"
-	_ID = "_id"
+	MAX_DISTANCE       = 100
+	SPATIAL_INDEX_TYPE = "2dsphere"
+	SPATIAL_INDEX_KEY  = "location"
+	_ID                = "_id"
 )
 
 type MongoDB struct {
@@ -24,14 +26,17 @@ type MongoDB struct {
 	Port       int
 	ServerOpts *options.ServerAPIOptions
 	Client     *mongo.Client
+	lc         logger.LoggingClient
+
 	// databaseName string
 	// context    context.Context
 }
 
-func NewMongoDB(host string, port int, opts *options.ServerAPIOptions) (interfaces.Client, error) {
+func NewMongoDB(host string, port int, lc logger.LoggingClient, opts *options.ServerAPIOptions) (interfaces.Client, error) {
 	db := &MongoDB{
 		Host:       host,
 		Port:       port,
+		lc:         lc,
 		ServerOpts: opts,
 	}
 	client, err := db.Connect()
@@ -114,7 +119,7 @@ func (db MongoDB) InsertRecord(databaseName string, collectionName string, doc i
 	return objId.String(), nil
 }
 
-func (db MongoDB) SpaitalQuery(point models.Point, databasName string, collectionName string) ([]bson.D, error) {
+func (db MongoDB) SpaitalQuery(point interface{}, databasName string, collectionName string) ([]bson.D, error) {
 	filter := db.spatialFilter(point)
 	collection := db.Client.Database(databasName).Collection(collectionName)
 
@@ -156,12 +161,11 @@ func (db MongoDB) FindOne(databaseName string, collectionName string, id string)
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 	objid := db.idFilter(id)
 
-	results := collection.FindOne(context.TODO(),objid)
+	results := collection.FindOne(context.TODO(), objid)
 	var data bson.D
 	results.Decode(&data)
 	return data
 }
-
 
 func (db MongoDB) Update(databaseName string, collectionName string, id string, crumb interface{}) error {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
@@ -171,7 +175,7 @@ func (db MongoDB) Update(databaseName string, collectionName string, id string, 
 	}
 
 	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -179,7 +183,7 @@ func (db MongoDB) Update(databaseName string, collectionName string, id string, 
 	if err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
@@ -189,11 +193,11 @@ func (db MongoDB) Delete(databaseName string, collectionName string, id string) 
 	if err != nil {
 		return err
 	}
-	fmt.Printf("deleted count: %v\n",res.DeletedCount)
+	fmt.Printf("deleted count: %v\n", res.DeletedCount)
 	return nil
 }
 
-func (db MongoDB) spatialFilter(point models.Point) bson.D {
+func (db MongoDB) spatialFilter(point interface{}) bson.D {
 	return bson.D{
 		{Key: SPATIAL_INDEX_KEY, Value: bson.D{
 			{Key: "$near", Value: bson.D{
@@ -204,12 +208,12 @@ func (db MongoDB) spatialFilter(point models.Point) bson.D {
 	}
 }
 
-func (db MongoDB) idFilter(id string) (bson.D) {
+func (db MongoDB) idFilter(id string) bson.D {
 	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil{
+	if err != nil {
 		panic(err)
 	}
-	
+
 	return bson.D{{Key: _ID, Value: objectID}}
 }
 

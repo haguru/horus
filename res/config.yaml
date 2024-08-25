@@ -1,5 +1,6 @@
 name: crumbdb
-loglevel: debug
+port: 50051
+loglevel: DEBUG
 database:
   host: localhost #mongodb://localhost:27017/?maxPoolSize=20&w=majority
   port: 27017

@@ -7,8 +7,6 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
-	models "github.com/haguru/horus/pkg/mongodb/models"
-
 	mongo "go.mongodb.org/mongo-driver/mongo"
 
 	primitive "go.mongodb.org/mongo-driver/bson/primitive"
@@ -133,6 +131,26 @@ func (_m *Client) FindAll(databaseName string, collectionName string) ([]primiti
 	return r0, r1
 }
 
+// FindOne provides a mock function with given fields: databaseName, collectionName, id
+func (_m *Client) FindOne(databaseName string, collectionName string, id string) primitive.D {
+	ret := _m.Called(databaseName, collectionName, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindOne")
+	}
+
+	var r0 primitive.D
+	if rf, ok := ret.Get(0).(func(string, string, string) primitive.D); ok {
+		r0 = rf(databaseName, collectionName, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(primitive.D)
+		}
+	}
+
+	return r0
+}
+
 // InsertRecord provides a mock function with given fields: databaseName, collectionName, doc
 func (_m *Client) InsertRecord(databaseName string, collectionName string, doc interface{}) (string, error) {
 	ret := _m.Called(databaseName, collectionName, doc)
@@ -180,7 +198,7 @@ func (_m *Client) Ping(client *mongo.Client) error {
 }
 
 // SpaitalQuery provides a mock function with given fields: point, databasName, collectionName
-func (_m *Client) SpaitalQuery(point models.Point, databasName string, collectionName string) ([]primitive.D, error) {
+func (_m *Client) SpaitalQuery(point interface{}, databasName string, collectionName string) ([]primitive.D, error) {
 	ret := _m.Called(point, databasName, collectionName)
 
 	if len(ret) == 0 {
@@ -189,10 +207,10 @@ func (_m *Client) SpaitalQuery(point models.Point, databasName string, collectio
 
 	var r0 []primitive.D
 	var r1 error
-	if rf, ok := ret.Get(0).(func(models.Point, string, string) ([]primitive.D, error)); ok {
+	if rf, ok := ret.Get(0).(func(interface{}, string, string) ([]primitive.D, error)); ok {
 		return rf(point, databasName, collectionName)
 	}
-	if rf, ok := ret.Get(0).(func(models.Point, string, string) []primitive.D); ok {
+	if rf, ok := ret.Get(0).(func(interface{}, string, string) []primitive.D); ok {
 		r0 = rf(point, databasName, collectionName)
 	} else {
 		if ret.Get(0) != nil {
@@ -200,7 +218,7 @@ func (_m *Client) SpaitalQuery(point models.Point, databasName string, collectio
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(models.Point, string, string) error); ok {
+	if rf, ok := ret.Get(1).(func(interface{}, string, string) error); ok {
 		r1 = rf(point, databasName, collectionName)
 	} else {
 		r1 = ret.Error(1)

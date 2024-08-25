@@ -5,10 +5,14 @@ package crumbdb;
 option go_package = "github.com/haguru/horus/internal/routes/protos";
 
 message Crumb {
+    // @gotags: bson:"_id,omitempty"
     string id = 1;
+    // @gotags: bson:"location"
     Point location = 2;
+    // @gotags: bson:"user"
     string user = 3;
-    string messagecrumb = 4;
+    // @gotags: bson:"message"
+    string message = 4;
 
 }
 
