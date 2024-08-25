@@ -43,7 +43,6 @@ func NewApp() (*App, error) {
 		lc.Errorf("failed to create spatial index: %v", err)
 		return nil,err
 	}
-
 	route := routes.NewRoute(lc,&serviceConfig.Database,db)
 	return &App{
 		LoggingClient:  lc,
