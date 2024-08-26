@@ -29,7 +29,8 @@ type MongoDB struct {
 	Client     *mongo.Client
 	lc         logger.LoggingClient
 }
-// NewMongoDB returns a interface for db client and error if it occurs 
+
+// NewMongoDB returns a interface for db client and error if it occurs
 func NewMongoDB(host string, port int, lc logger.LoggingClient, opts *options.ServerAPIOptions) (interfaces.Client, error) {
 	db := &MongoDB{
 		Host:       host,
@@ -46,8 +47,8 @@ func NewMongoDB(host string, port int, lc logger.LoggingClient, opts *options.Se
 	return db, nil
 }
 
-// Connect returns a mongodb client and error. 
-// If an error occurs mongodb client will be nil 
+// Connect returns a mongodb client and error.
+// If an error occurs mongodb client will be nil
 func (db MongoDB) Connect() (*mongo.Client, error) {
 	// Use the SetServerAPIOptions() method to set the Stable API version to 1
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1).SetStrict(true).SetDeprecationErrors(true)
@@ -83,7 +84,7 @@ func (db MongoDB) Ping(client *mongo.Client) error {
 	return nil
 }
 
-// Disconnect returns error if client is unable to disconnect from mongodb 
+// Disconnect returns error if client is unable to disconnect from mongodb
 func (db MongoDB) Disconnect(context context.Context) error {
 	if err := db.Client.Disconnect(context); err != nil {
 		return err
@@ -108,9 +109,8 @@ func (db MongoDB) CreateSpatialIndex(databaseName string, collectionName string,
 	return nil
 }
 
-
 // InsertRecord returns ID, as string, and error.
-// if error occurs an empty string is returned along with the error 
+// if error occurs an empty string is returned along with the error
 func (db MongoDB) InsertRecord(databaseName string, collectionName string, doc interface{}) (string, error) {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 
@@ -148,10 +148,10 @@ func (db MongoDB) SpaitalQuery(point interface{}, databasName string, collection
 }
 
 // FindAll retrieves all documents in the database. Returns an array of bson.D and error.
-// if an error occurs then a nil is return and an error 
+// if an error occurs then a nil is return and an error
 func (db MongoDB) FindAll(databaseName string, collectionName string) ([]bson.D, error) {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
-	
+
 	cur, err := collection.Find(context.TODO(), bson.D{{}})
 	if err != nil {
 		return nil, err
@@ -171,16 +171,20 @@ func (db MongoDB) FindAll(databaseName string, collectionName string) ([]bson.D,
 }
 
 // FindOne retrieves a document by ID. Returns a bson.D
-func (db MongoDB) FindOne(databaseName string, collectionName string, id string) bson.D {
+func (db MongoDB) FindOne(databaseName string, collectionName string, id string) (*bson.D, error) {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
-	
+
 	// get bson id filter
 	objid := db.idFilter(id)
 
 	results := collection.FindOne(context.TODO(), objid)
 	var data bson.D
-	results.Decode(&data)
-	return data
+	err := results.Decode(&data)
+	if err != nil {
+		db.lc.Errorf("failed to decode results: %v", err)
+		return nil, err
+	}
+	return &data, nil
 }
 
 // Update modifies a document given a ID. Returns a nil error when sucessful

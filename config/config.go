@@ -13,7 +13,7 @@ const (
 type ServiceConfig struct {
 	Name     string   `yaml:"name"`
 	LogLevel string   `yaml:"loglevel"`
-	Port     int   `yaml:"port"`
+	Port     int      `yaml:"port"`
 	Database Database `yaml:"database"`
 }
 

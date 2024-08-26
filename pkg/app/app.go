@@ -34,22 +34,22 @@ func NewApp() (*App, error) {
 	db, err := mongodb.NewMongoDB("localhost", 27017, lc, nil)
 	if err != nil {
 		lc.Errorf("failed to connect, %v\n", err)
-		return nil,err
+		return nil, err
 	}
 
 	dbConfig := serviceConfig.Database
 	err = db.CreateSpatialIndex(dbConfig.Name, dbConfig.Collection, mongodb.SPATIAL_INDEX_TYPE)
-	if err != nil{
+	if err != nil {
 		lc.Errorf("failed to create spatial index: %v", err)
-		return nil,err
+		return nil, err
 	}
-	route := routes.NewRoute(lc,&serviceConfig.Database,db)
+	route := routes.NewRoute(lc, &serviceConfig.Database, db)
 	return &App{
 		LoggingClient:  lc,
 		AppCtx:         context.Background(),
 		ServiceConfig:  serviceConfig,
 		DbServerClient: db,
-		Route: route,
+		Route:          route,
 	}, nil
 }
 

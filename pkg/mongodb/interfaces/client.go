@@ -13,7 +13,7 @@ type Client interface {
 	Delete(databaseName string, collectionName string, id string) error
 	Disconnect(context.Context) error
 	FindAll(databaseName string, collectionName string) ([]bson.D, error)
-	FindOne(databaseName string, collectionName string, id string) bson.D
+	FindOne(databaseName string, collectionName string, id string) (*bson.D, error)
 	InsertRecord(databaseName string, collectionName string, doc interface{}) (string, error)
 	Ping(client *mongo.Client) error
 	SpaitalQuery(point interface{}, databasName string, collectionName string) ([]bson.D, error)

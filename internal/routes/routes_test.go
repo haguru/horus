@@ -326,8 +326,8 @@ func TestRoute_Delete(t *testing.T) {
 				},
 			},
 			clientErrorRtn: fmt.Errorf("failed"),
-			want: nil,
-			wantErr: true,
+			want:           nil,
+			wantErr:        true,
 		},
 	}
 	for _, tt := range tests {

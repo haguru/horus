@@ -28,5 +28,4 @@ func main() {
 		app.GrpcServer.Stop()
 	}()
 
-	
 }

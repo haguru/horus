@@ -6,8 +6,8 @@ import (
 	"github.com/edgexfoundry/go-mod-core-contracts/v3/clients/logger"
 	"github.com/haguru/horus/config"
 	pb "github.com/haguru/horus/internal/routes/protos"
-	"github.com/haguru/horus/pkg/mongodb/interfaces"
 	"github.com/haguru/horus/pkg/models"
+	"github.com/haguru/horus/pkg/mongodb/interfaces"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -77,7 +77,7 @@ func (r *Route) Update(ctx context.Context, crumb *pb.Crumb) (*pb.Id, error) {
 	messageUpdate := models.MessageUpdateRequest{
 		Message: crumb.GetMessage(),
 	}
-	
+
 	err := r.dbClient.Update(r.dbCconfig.Name, r.dbCconfig.Collection, crumb.Id, messageUpdate)
 	if err != nil {
 		r.lc.Errorf("failed to update data with id '%v' : %v", crumb.GetId(), err)

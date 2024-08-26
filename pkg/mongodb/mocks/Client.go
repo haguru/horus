@@ -132,23 +132,33 @@ func (_m *Client) FindAll(databaseName string, collectionName string) ([]primiti
 }
 
 // FindOne provides a mock function with given fields: databaseName, collectionName, id
-func (_m *Client) FindOne(databaseName string, collectionName string, id string) primitive.D {
+func (_m *Client) FindOne(databaseName string, collectionName string, id string) (*primitive.D, error) {
 	ret := _m.Called(databaseName, collectionName, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindOne")
 	}
 
-	var r0 primitive.D
-	if rf, ok := ret.Get(0).(func(string, string, string) primitive.D); ok {
+	var r0 *primitive.D
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, string) (*primitive.D, error)); ok {
+		return rf(databaseName, collectionName, id)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string) *primitive.D); ok {
 		r0 = rf(databaseName, collectionName, id)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(primitive.D)
+			r0 = ret.Get(0).(*primitive.D)
 		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
+		r1 = rf(databaseName, collectionName, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // InsertRecord provides a mock function with given fields: databaseName, collectionName, doc

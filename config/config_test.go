@@ -21,31 +21,29 @@ func TestReadLocalConfig(t *testing.T) {
 				configPath: "../res/config.yaml",
 			},
 			want: &ServiceConfig{
-				Name: "crumbdb",
-				Port: 50051,
+				Name:     "crumbdb",
+				Port:     50051,
 				LogLevel: "DEBUG",
 				Database: Database{
-					Host: "localhost",
-					Port: 27017,
-					Name: "horus",
+					Host:       "localhost",
+					Port:       27017,
+					Name:       "horus",
 					Collection: "crumbs",
 					Options: ServerOptions{
-						SetStrict: true,
+						SetStrict:            true,
 						SetDeprecationErrors: true,
 					},
 				},
 			},
 			wantErr: false,
-
 		},
 		{
 			name: "file does not exist",
 			args: args{
 				configPath: "",
 			},
-			want: nil,
+			want:    nil,
 			wantErr: true,
-
 		},
 	}
 	for _, tt := range tests {
