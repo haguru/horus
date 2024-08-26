@@ -2,12 +2,15 @@
 
 ARCH=$(shell uname -m)
 
-MICROSERVICE=crumbDB
+MICROSERVICE=crumbdb
 
 .PHONY: build test clean fmt docker run
 
+APPVERSION=$(shell cat ./VERSION 2>/dev/null || echo 0.0.0)
+GIT_SHA=$(shell git rev-parse HEAD)
+
 build:
-	go build -tags "$(ADD_BUILD_TAGS)" $(GOFLAGS) -o $(MICROSERVICE)
+	CGO_ENABLED=0 GOOS=linux go build -tags "$(ADD_BUILD_TAGS)" $(GOFLAGS) -o $(MICROSERVICE)
 
 tidy:
 	go mod tidy
@@ -36,16 +39,12 @@ clean:
 fmt:
 	go fmt ./...
 
-# docker:
-# 	docker build \
-# 		--rm \
-# 		--build-arg ADD_BUILD_TAGS=$(ADD_BUILD_TAGS) \
-# 		--build-arg http_proxy \
-# 		--build-arg https_proxy \
-# 			--label "git_sha=$(GIT_SHA)" \
-# 			-t edgexfoundry/app-rfid-llrp-inventory:$(GIT_SHA) \
-# 			-t edgexfoundry/app-rfid-llrp-inventory:$(APPVERSION)-dev \
-			.
+docker:
+	docker build \
+		--rm \
+		-t haguru/crumbdb:$(GIT_SHA) \
+		-t haguru/crumbdb:$(APPVERSION)-dev \
+		.
 
 run: build
 	./$(MICROSERVICE)
