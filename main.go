@@ -7,12 +7,6 @@ import (
 	"github.com/haguru/horus/pkg/app"
 )
 
-// type App struct {
-// 	// lc            logger.LoggingClient
-// 	appCtx        context.Context
-// 	serviceConfig config.ServiceConfig
-// }
-
 func main() {
 	app, err := app.NewApp()
 	if err != nil {
