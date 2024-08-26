@@ -15,6 +15,7 @@ import (
 
 const (
 	MAX_DISTANCE       = 100
+	MAXPOOLSIZE        = 20
 	SPATIAL_INDEX_TYPE = "2dsphere"
 	SPATIAL_INDEX_KEY  = "location"
 	_ID                = "_id"
@@ -27,11 +28,8 @@ type MongoDB struct {
 	ServerOpts *options.ServerAPIOptions
 	Client     *mongo.Client
 	lc         logger.LoggingClient
-
-	// databaseName string
-	// context    context.Context
 }
-
+// NewMongoDB returns a interface for db client and error if it occurs 
 func NewMongoDB(host string, port int, lc logger.LoggingClient, opts *options.ServerAPIOptions) (interfaces.Client, error) {
 	db := &MongoDB{
 		Host:       host,
@@ -48,13 +46,15 @@ func NewMongoDB(host string, port int, lc logger.LoggingClient, opts *options.Se
 	return db, nil
 }
 
+// Connect returns a mongodb client and error. 
+// If an error occurs mongodb client will be nil 
 func (db MongoDB) Connect() (*mongo.Client, error) {
 	// Use the SetServerAPIOptions() method to set the Stable API version to 1
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1).SetStrict(true).SetDeprecationErrors(true)
 	if db.ServerOpts != nil {
 		serverAPI = db.ServerOpts
 	}
-	uri := fmt.Sprintf("mongodb://%v:%v/?maxPoolSize=20&w=majority", db.Host, db.Port)
+	uri := fmt.Sprintf("mongodb://%v:%v/?maxPoolSize=%v&w=majority", db.Host, db.Port, MAXPOOLSIZE)
 	opts := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
 
 	// Creat new client
@@ -72,6 +72,7 @@ func (db MongoDB) Connect() (*mongo.Client, error) {
 	return client, nil
 }
 
+// Ping returns error if mongodb is unreachable
 func (db MongoDB) Ping(client *mongo.Client) error {
 	// Send a ping to confirm a successful connection
 	var result bson.M
@@ -82,6 +83,7 @@ func (db MongoDB) Ping(client *mongo.Client) error {
 	return nil
 }
 
+// Disconnect returns error if client is unable to disconnect from mongodb 
 func (db MongoDB) Disconnect(context context.Context) error {
 	if err := db.Client.Disconnect(context); err != nil {
 		return err
@@ -90,6 +92,8 @@ func (db MongoDB) Disconnect(context context.Context) error {
 	return nil
 }
 
+// CreateSpatialIndex returns error if client is unable to create a spatial index
+// this is needed to search database by (longitude, latitude) coordinates
 func (db MongoDB) CreateSpatialIndex(databaseName string, collectionName string, spatialType string) error {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 	indexModel := mongo.IndexModel{
@@ -104,6 +108,9 @@ func (db MongoDB) CreateSpatialIndex(databaseName string, collectionName string,
 	return nil
 }
 
+
+// InsertRecord returns ID, as string, and error.
+// if error occurs an empty string is returned along with the error 
 func (db MongoDB) InsertRecord(databaseName string, collectionName string, doc interface{}) (string, error) {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 
@@ -111,25 +118,27 @@ func (db MongoDB) InsertRecord(databaseName string, collectionName string, doc i
 	if err != nil {
 		return "", err
 	}
+
 	objId, ok := r.InsertedID.(primitive.ObjectID)
 	if !ok {
 		return "", fmt.Errorf("failed to get objectID")
 	}
-	fmt.Printf("id(string) ->%v\n", objId.String())
+
 	return objId.String(), nil
 }
 
+// SpaitalQuery queries database for data based on coordinates. Returns array of bson.D and error
+// if error occurs a nil is returned as well as an error
 func (db MongoDB) SpaitalQuery(point interface{}, databasName string, collectionName string) ([]bson.D, error) {
 	filter := db.spatialFilter(point)
 	collection := db.Client.Database(databasName).Collection(collectionName)
-
-	var docs []bson.D
 
 	output, err := collection.Find(context.TODO(), filter)
 	if err != nil {
 		return nil, err
 	}
 
+	var docs []bson.D
 	err = output.All(context.TODO(), &docs)
 	if err != nil {
 		return nil, err
@@ -138,12 +147,16 @@ func (db MongoDB) SpaitalQuery(point interface{}, databasName string, collection
 	return docs, nil
 }
 
+// FindAll retrieves all documents in the database. Returns an array of bson.D and error.
+// if an error occurs then a nil is return and an error 
 func (db MongoDB) FindAll(databaseName string, collectionName string) ([]bson.D, error) {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
+	
 	cur, err := collection.Find(context.TODO(), bson.D{{}})
 	if err != nil {
 		return nil, err
 	}
+
 	var results []bson.D
 	for cur.Next(context.TODO()) {
 		// Create a value into which the single document can be decoded
@@ -157,8 +170,11 @@ func (db MongoDB) FindAll(databaseName string, collectionName string) ([]bson.D,
 	return results, nil
 }
 
+// FindOne retrieves a document by ID. Returns a bson.D
 func (db MongoDB) FindOne(databaseName string, collectionName string, id string) bson.D {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
+	
+	// get bson id filter
 	objid := db.idFilter(id)
 
 	results := collection.FindOne(context.TODO(), objid)
@@ -167,6 +183,7 @@ func (db MongoDB) FindOne(databaseName string, collectionName string, id string)
 	return data
 }
 
+// Update modifies a document given a ID. Returns a nil error when sucessful
 func (db MongoDB) Update(databaseName string, collectionName string, id string, crumb interface{}) error {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 	c, err := db.setMessageUpdate(crumb)
@@ -187,13 +204,15 @@ func (db MongoDB) Update(databaseName string, collectionName string, id string, 
 	return nil
 }
 
+// Delete removes a document from the database. Returns nil error if successful
 func (db MongoDB) Delete(databaseName string, collectionName string, id string) error {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 	res, err := collection.DeleteOne(context.TODO(), db.idFilter(id))
 	if err != nil {
 		return err
 	}
-	fmt.Printf("deleted count: %v\n", res.DeletedCount)
+
+	db.lc.Debugf("deleted count: %v\n", res.DeletedCount)
 	return nil
 }
 
@@ -223,6 +242,7 @@ func (db MongoDB) setMessageUpdate(data interface{}) (bson.D, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal data to bson.D")
 	}
+
 	return bson.D{
 		{Key: "$set", Value: bsonData},
 	}, nil
