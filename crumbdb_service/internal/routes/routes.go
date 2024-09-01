@@ -4,10 +4,10 @@ import (
 	"context"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/v3/clients/logger"
-	"github.com/haguru/horus/config"
-	pb "github.com/haguru/horus/internal/routes/protos"
-	"github.com/haguru/horus/pkg/models"
-	"github.com/haguru/horus/pkg/mongodb/interfaces"
+	"github.com/haguru/horus/crumbdb/config"
+	pb "github.com/haguru/horus/crumbdb/internal/routes/protos"
+	"github.com/haguru/horus/crumbdb/pkg/models"
+	"github.com/haguru/horus/crumbdb/pkg/mongodb/interfaces"
 	"go.mongodb.org/mongo-driver/bson"
 )
 

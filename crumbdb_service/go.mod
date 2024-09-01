@@ -1,4 +1,4 @@
-module github.com/haguru/horus
+module github.com/haguru/horus/crumbdb
 
 go 1.22.6
 

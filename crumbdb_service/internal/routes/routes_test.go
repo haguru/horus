@@ -7,10 +7,10 @@ import (
 	"testing"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/v3/clients/logger"
-	"github.com/haguru/horus/config"
-	pb "github.com/haguru/horus/internal/routes/protos"
-	grpcMock "github.com/haguru/horus/internal/routes/protos/mocks"
-	"github.com/haguru/horus/pkg/mongodb/mocks"
+	"github.com/haguru/horus/crumbdb/config"
+	pb "github.com/haguru/horus/crumbdb/internal/routes/protos"
+	grpcMock "github.com/haguru/horus/crumbdb/internal/routes/protos/mocks"
+	"github.com/haguru/horus/crumbdb/pkg/mongodb/mocks"
 	"github.com/stretchr/testify/mock"
 	"go.mongodb.org/mongo-driver/bson"
 )

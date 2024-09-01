@@ -1,7 +1,7 @@
 package models
 
 import (
-	pb "github.com/haguru/horus/internal/routes/protos"
+	pb "github.com/haguru/horus/crumbdb/internal/routes/protos"
 )
 
 type MessageUpdateRequest struct {

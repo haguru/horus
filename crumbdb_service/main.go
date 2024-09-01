@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/haguru/horus/pkg/app"
+	"github.com/haguru/horus/crumbdb/pkg/app"
 )
 
 func main() {
