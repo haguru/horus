@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package crumbdb;
+
+option go_package = "github.com/haguru/horus/useracctdb/internal/routes/protos";
+
+message User {
+  // @gotags: bson:"_id,omitempty"
+  string id = 1;
+  // @gotags: bson:"email"
+  string email = 2;
+  // @gotags: bson:"username"
+  string username = 3;
+  // @gotags: bson:"message"
+  string password = 4;
+
+}
+
+message UserRequest {
+  string username = 1;
+}
+
+message PasswordRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message Id{
+  string value = 1;
+}
+
+message Status {
+  int32 value = 1;
+}
+
+service CrumbDB{
+  rpc Create(User) returns (Id);                 // Create
+  rpc GetUser(UserRequest) returns (User);    // Read
+  rpc Update(PasswordRequest) returns (Status);                 // Update
+  rpc Delete(UserRequest) returns (Status);                    // Delete
+}
+

@@ -2,7 +2,7 @@
 
 ARCH=$(shell uname -m)
 
-MICROSERVICE=crumbdb
+MICROSERVICE=useracct
 DOCKERDATABASE=mongodb/mongodb-community-server:latest
 
 .PHONY: build test clean fmt docker run
@@ -51,7 +51,7 @@ run: build
 	./$(MICROSERVICE)
 
 launchdb: 
-	docker run --rm -d -p 50052:27017/tcp  $(DOCKERDATABASE)
+	docker run --rm -d -p 50054:27017/tcp  $(DOCKERDATABASE)
 
 vendor:
 	go mod vendor

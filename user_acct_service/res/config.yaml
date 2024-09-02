@@ -1,11 +1,11 @@
-name: crumbdb
-port: 50051
+name: useracctdb
+port: 50053
 loglevel: DEBUG
 database:
   host: localhost #mongodb://localhost:27017/?maxPoolSize=20&w=majority
-  port: 50052
+  port: 50054
   name: horus
-  collection: crumbs
+  collection: users
   options:
     setstrict: true
     setdeprecationerrors: true

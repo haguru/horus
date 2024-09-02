@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package crumbdb;
 
-option go_package = "github.com/haguru/horus/internal/routes/protos";
+option go_package = "github.com/haguru/horus/crumbdb/internal/routes/protos";
 
 message Crumb {
   // @gotags: bson:"_id,omitempty"
