@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
+	"github.com/haguru/horus/useracctdb/pkg/interfaces"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -22,6 +23,23 @@ type MongoDB struct {
 const (
 	MAXPOOLSIZE = 20
 )
+
+// NewMongoDB returns a interface for db client and error if it occurs
+func NewMongoDB(host string, port int, lc logger.LoggingClient, opts *options.ServerAPIOptions) (interfaces.DbClient, error) {
+	db := &MongoDB{
+		Host:       host,
+		Port:       port,
+		lc:         lc,
+		ServerOpts: opts,
+	}
+	client, err := db.Connect()
+	if err != nil {
+		return nil, err
+	}
+	db.Client = client
+
+	return db, nil
+}
 
 // Connect returns a mongodb client and error.
 // If an error occurs mongodb client will be nil
@@ -69,18 +87,18 @@ func (db MongoDB) Disconnect(context context.Context) error {
 	return nil
 }
 
-func (db MongoDB) Create() error {
+func (db MongoDB) CreateUser(username string, email string, password string) error {
 	return nil
 }
 
-func (db MongoDB) GetUser() error {
+func (db MongoDB) GetUser(email string) error {
 	return nil
 }
 
-func (db MongoDB) UpdatePassword() error {
+func (db MongoDB) UpdatePassword(email string) error {
 	return nil
 }
 
-func (db MongoDB) DeleteUser() error {
+func (db MongoDB) DeleteUser(email string) error {
 	return nil
 }

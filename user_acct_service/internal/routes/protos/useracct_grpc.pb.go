@@ -19,215 +19,215 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	CrumbDB_Create_FullMethodName  = "/crumbdb.CrumbDB/Create"
-	CrumbDB_GetUser_FullMethodName = "/crumbdb.CrumbDB/GetUser"
-	CrumbDB_Update_FullMethodName  = "/crumbdb.CrumbDB/Update"
-	CrumbDB_Delete_FullMethodName  = "/crumbdb.CrumbDB/Delete"
+	UserAcctDB_Create_FullMethodName  = "/crumbdb.UserAcctDB/Create"
+	UserAcctDB_GetUser_FullMethodName = "/crumbdb.UserAcctDB/GetUser"
+	UserAcctDB_Update_FullMethodName  = "/crumbdb.UserAcctDB/Update"
+	UserAcctDB_Delete_FullMethodName  = "/crumbdb.UserAcctDB/Delete"
 )
 
-// CrumbDBClient is the client API for CrumbDB service.
+// UserAcctDBClient is the client API for UserAcctDB service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type CrumbDBClient interface {
+type UserAcctDBClient interface {
 	Create(ctx context.Context, in *User, opts ...grpc.CallOption) (*Id, error)
 	GetUser(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*User, error)
 	Update(ctx context.Context, in *PasswordRequest, opts ...grpc.CallOption) (*Status, error)
 	Delete(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*Status, error)
 }
 
-type crumbDBClient struct {
+type userAcctDBClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewCrumbDBClient(cc grpc.ClientConnInterface) CrumbDBClient {
-	return &crumbDBClient{cc}
+func NewUserAcctDBClient(cc grpc.ClientConnInterface) UserAcctDBClient {
+	return &userAcctDBClient{cc}
 }
 
-func (c *crumbDBClient) Create(ctx context.Context, in *User, opts ...grpc.CallOption) (*Id, error) {
+func (c *userAcctDBClient) Create(ctx context.Context, in *User, opts ...grpc.CallOption) (*Id, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Id)
-	err := c.cc.Invoke(ctx, CrumbDB_Create_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, UserAcctDB_Create_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *crumbDBClient) GetUser(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*User, error) {
+func (c *userAcctDBClient) GetUser(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*User, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(User)
-	err := c.cc.Invoke(ctx, CrumbDB_GetUser_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, UserAcctDB_GetUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *crumbDBClient) Update(ctx context.Context, in *PasswordRequest, opts ...grpc.CallOption) (*Status, error) {
+func (c *userAcctDBClient) Update(ctx context.Context, in *PasswordRequest, opts ...grpc.CallOption) (*Status, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Status)
-	err := c.cc.Invoke(ctx, CrumbDB_Update_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, UserAcctDB_Update_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *crumbDBClient) Delete(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*Status, error) {
+func (c *userAcctDBClient) Delete(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*Status, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Status)
-	err := c.cc.Invoke(ctx, CrumbDB_Delete_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, UserAcctDB_Delete_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// CrumbDBServer is the server API for CrumbDB service.
-// All implementations must embed UnimplementedCrumbDBServer
+// UserAcctDBServer is the server API for UserAcctDB service.
+// All implementations must embed UnimplementedUserAcctDBServer
 // for forward compatibility.
-type CrumbDBServer interface {
+type UserAcctDBServer interface {
 	Create(context.Context, *User) (*Id, error)
 	GetUser(context.Context, *UserRequest) (*User, error)
 	Update(context.Context, *PasswordRequest) (*Status, error)
 	Delete(context.Context, *UserRequest) (*Status, error)
-	mustEmbedUnimplementedCrumbDBServer()
+	mustEmbedUnimplementedUserAcctDBServer()
 }
 
-// UnimplementedCrumbDBServer must be embedded to have
+// UnimplementedUserAcctDBServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedCrumbDBServer struct{}
+type UnimplementedUserAcctDBServer struct{}
 
-func (UnimplementedCrumbDBServer) Create(context.Context, *User) (*Id, error) {
+func (UnimplementedUserAcctDBServer) Create(context.Context, *User) (*Id, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
 }
-func (UnimplementedCrumbDBServer) GetUser(context.Context, *UserRequest) (*User, error) {
+func (UnimplementedUserAcctDBServer) GetUser(context.Context, *UserRequest) (*User, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
-func (UnimplementedCrumbDBServer) Update(context.Context, *PasswordRequest) (*Status, error) {
+func (UnimplementedUserAcctDBServer) Update(context.Context, *PasswordRequest) (*Status, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
 }
-func (UnimplementedCrumbDBServer) Delete(context.Context, *UserRequest) (*Status, error) {
+func (UnimplementedUserAcctDBServer) Delete(context.Context, *UserRequest) (*Status, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
 }
-func (UnimplementedCrumbDBServer) mustEmbedUnimplementedCrumbDBServer() {}
-func (UnimplementedCrumbDBServer) testEmbeddedByValue()                 {}
+func (UnimplementedUserAcctDBServer) mustEmbedUnimplementedUserAcctDBServer() {}
+func (UnimplementedUserAcctDBServer) testEmbeddedByValue()                    {}
 
-// UnsafeCrumbDBServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to CrumbDBServer will
+// UnsafeUserAcctDBServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to UserAcctDBServer will
 // result in compilation errors.
-type UnsafeCrumbDBServer interface {
-	mustEmbedUnimplementedCrumbDBServer()
+type UnsafeUserAcctDBServer interface {
+	mustEmbedUnimplementedUserAcctDBServer()
 }
 
-func RegisterCrumbDBServer(s grpc.ServiceRegistrar, srv CrumbDBServer) {
-	// If the following call pancis, it indicates UnimplementedCrumbDBServer was
+func RegisterUserAcctDBServer(s grpc.ServiceRegistrar, srv UserAcctDBServer) {
+	// If the following call pancis, it indicates UnimplementedUserAcctDBServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&CrumbDB_ServiceDesc, srv)
+	s.RegisterService(&UserAcctDB_ServiceDesc, srv)
 }
 
-func _CrumbDB_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _UserAcctDB_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(User)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CrumbDBServer).Create(ctx, in)
+		return srv.(UserAcctDBServer).Create(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: CrumbDB_Create_FullMethodName,
+		FullMethod: UserAcctDB_Create_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CrumbDBServer).Create(ctx, req.(*User))
+		return srv.(UserAcctDBServer).Create(ctx, req.(*User))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CrumbDB_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _UserAcctDB_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CrumbDBServer).GetUser(ctx, in)
+		return srv.(UserAcctDBServer).GetUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: CrumbDB_GetUser_FullMethodName,
+		FullMethod: UserAcctDB_GetUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CrumbDBServer).GetUser(ctx, req.(*UserRequest))
+		return srv.(UserAcctDBServer).GetUser(ctx, req.(*UserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CrumbDB_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _UserAcctDB_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PasswordRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CrumbDBServer).Update(ctx, in)
+		return srv.(UserAcctDBServer).Update(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: CrumbDB_Update_FullMethodName,
+		FullMethod: UserAcctDB_Update_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CrumbDBServer).Update(ctx, req.(*PasswordRequest))
+		return srv.(UserAcctDBServer).Update(ctx, req.(*PasswordRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CrumbDB_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _UserAcctDB_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CrumbDBServer).Delete(ctx, in)
+		return srv.(UserAcctDBServer).Delete(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: CrumbDB_Delete_FullMethodName,
+		FullMethod: UserAcctDB_Delete_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CrumbDBServer).Delete(ctx, req.(*UserRequest))
+		return srv.(UserAcctDBServer).Delete(ctx, req.(*UserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// CrumbDB_ServiceDesc is the grpc.ServiceDesc for CrumbDB service.
+// UserAcctDB_ServiceDesc is the grpc.ServiceDesc for UserAcctDB service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var CrumbDB_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "crumbdb.CrumbDB",
-	HandlerType: (*CrumbDBServer)(nil),
+var UserAcctDB_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "crumbdb.UserAcctDB",
+	HandlerType: (*UserAcctDBServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Create",
-			Handler:    _CrumbDB_Create_Handler,
+			Handler:    _UserAcctDB_Create_Handler,
 		},
 		{
 			MethodName: "GetUser",
-			Handler:    _CrumbDB_GetUser_Handler,
+			Handler:    _UserAcctDB_GetUser_Handler,
 		},
 		{
 			MethodName: "Update",
-			Handler:    _CrumbDB_Update_Handler,
+			Handler:    _UserAcctDB_Update_Handler,
 		},
 		{
 			MethodName: "Delete",
-			Handler:    _CrumbDB_Delete_Handler,
+			Handler:    _UserAcctDB_Delete_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

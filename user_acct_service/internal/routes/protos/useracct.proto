@@ -33,7 +33,7 @@ message Status {
   int32 value = 1;
 }
 
-service CrumbDB{
+service UserAcctDB{
   rpc Create(User) returns (Id);                 // Create
   rpc GetUser(UserRequest) returns (User);    // Read
   rpc Update(PasswordRequest) returns (Status);                 // Update
