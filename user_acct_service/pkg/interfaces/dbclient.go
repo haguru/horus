@@ -3,9 +3,9 @@ package interfaces
 import "context"
 
 type DbClient interface {
-	CreateUser(username string, email string, password string) error
-	GetUser(email string) error
-	UpdatePassword(email string) error
+	Create(databaseName string, collectionName string, doc interface{}) (string, error)
+	Delete(databaseName string, collectionName string, filterParms map[string]interface{}) error
 	Disconnect(context.Context) error
-	DeleteUser(email string) error
+	Get(databaseName string, collectionName string, filterParams map[string]interface{}) (interface{}, error)
+	Update(databaseName string, collectionName string, filterParms map[string]interface{}, updateItems map[string]interface{}) error
 }

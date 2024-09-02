@@ -13,35 +13,45 @@ type DbClient struct {
 	mock.Mock
 }
 
-// CreateUser provides a mock function with given fields: username, email, password
-func (_m *DbClient) CreateUser(username string, email string, password string) error {
-	ret := _m.Called(username, email, password)
+// Create provides a mock function with given fields: databaseName, collectionName, doc
+func (_m *DbClient) Create(databaseName string, collectionName string, doc interface{}) (string, error) {
+	ret := _m.Called(databaseName, collectionName, doc)
 
 	if len(ret) == 0 {
-		panic("no return value specified for CreateUser")
+		panic("no return value specified for Create")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
-		r0 = rf(username, email, password)
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, interface{}) (string, error)); ok {
+		return rf(databaseName, collectionName, doc)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, interface{}) string); ok {
+		r0 = rf(databaseName, collectionName, doc)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(string)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(string, string, interface{}) error); ok {
+		r1 = rf(databaseName, collectionName, doc)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
-// DeleteUser provides a mock function with given fields: email
-func (_m *DbClient) DeleteUser(email string) error {
-	ret := _m.Called(email)
+// Delete provides a mock function with given fields: databaseName, collectionName, filterParms
+func (_m *DbClient) Delete(databaseName string, collectionName string, filterParms map[string]interface{}) error {
+	ret := _m.Called(databaseName, collectionName, filterParms)
 
 	if len(ret) == 0 {
-		panic("no return value specified for DeleteUser")
+		panic("no return value specified for Delete")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(email)
+	if rf, ok := ret.Get(0).(func(string, string, map[string]interface{}) error); ok {
+		r0 = rf(databaseName, collectionName, filterParms)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -67,35 +77,47 @@ func (_m *DbClient) Disconnect(_a0 context.Context) error {
 	return r0
 }
 
-// GetUser provides a mock function with given fields: email
-func (_m *DbClient) GetUser(email string) error {
-	ret := _m.Called(email)
+// Get provides a mock function with given fields: databaseName, collectionName, filterParams
+func (_m *DbClient) Get(databaseName string, collectionName string, filterParams map[string]interface{}) (interface{}, error) {
+	ret := _m.Called(databaseName, collectionName, filterParams)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetUser")
+		panic("no return value specified for Get")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(email)
+	var r0 interface{}
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, map[string]interface{}) (interface{}, error)); ok {
+		return rf(databaseName, collectionName, filterParams)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, map[string]interface{}) interface{}); ok {
+		r0 = rf(databaseName, collectionName, filterParams)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(interface{})
+		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(string, string, map[string]interface{}) error); ok {
+		r1 = rf(databaseName, collectionName, filterParams)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
-// UpdatePassword provides a mock function with given fields: email
-func (_m *DbClient) UpdatePassword(email string) error {
-	ret := _m.Called(email)
+// Update provides a mock function with given fields: databaseName, collectionName, filterParms, updateItems
+func (_m *DbClient) Update(databaseName string, collectionName string, filterParms map[string]interface{}, updateItems map[string]interface{}) error {
+	ret := _m.Called(databaseName, collectionName, filterParms, updateItems)
 
 	if len(ret) == 0 {
-		panic("no return value specified for UpdatePassword")
+		panic("no return value specified for Update")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(email)
+	if rf, ok := ret.Get(0).(func(string, string, map[string]interface{}, map[string]interface{}) error); ok {
+		r0 = rf(databaseName, collectionName, filterParms, updateItems)
 	} else {
 		r0 = ret.Error(0)
 	}

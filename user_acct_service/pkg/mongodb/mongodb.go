@@ -7,6 +7,7 @@ import (
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	"github.com/haguru/horus/useracctdb/pkg/interfaces"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -22,6 +23,7 @@ type MongoDB struct {
 
 const (
 	MAXPOOLSIZE = 20
+	IDFIELD     = "_id"
 )
 
 // NewMongoDB returns a interface for db client and error if it occurs
@@ -87,18 +89,74 @@ func (db MongoDB) Disconnect(context context.Context) error {
 	return nil
 }
 
-func (db MongoDB) CreateUser(username string, email string, password string) error {
+func (db MongoDB) Create(databaseName string, collectionName string, doc interface{}) (string, error) {
+	collection := db.Client.Database(databaseName).Collection(collectionName)
+
+	r, err := collection.InsertOne(context.TODO(), doc)
+	if err != nil {
+		return "", err
+	}
+
+	objId, ok := r.InsertedID.(primitive.ObjectID)
+	if !ok {
+		return "", fmt.Errorf("failed to get objectID")
+	}
+
+	return objId.String(), nil
+}
+
+func (db MongoDB) Get(databaseName string, collectionName string, filterParams map[string]interface{}) (interface{}, error) {
+	collection := db.Client.Database(databaseName).Collection(collectionName)
+
+	filter := db.filter(bson.M{}, filterParams)
+
+	results := collection.FindOne(context.TODO(), filter)
+	var data bson.D
+	err := results.Decode(&data)
+	if err != nil {
+		db.lc.Errorf("failed to decode results: %v", err)
+		return nil, err
+	}
+	return &data, nil
+}
+
+func (db MongoDB) Update(databaseName string, collectionName string, filterParams map[string]interface{}, items map[string]interface{}) error {
+	collection := db.Client.Database(databaseName).Collection(collectionName)
+
+	filter := db.filter(bson.M{}, filterParams)
+	updateItems := db.createUpdateSetCommand(items)
+	_, err := collection.UpdateOne(context.TODO(), filter, updateItems)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func (db MongoDB) GetUser(email string) error {
+func (db MongoDB) Delete(databaseName string, collectionName string, filterParams map[string]interface{}) error {
+	collection := db.Client.Database(databaseName).Collection(collectionName)
+
+	filter := db.filter(bson.M{}, filterParams)
+
+	res, err := collection.DeleteOne(context.TODO(), filter)
+	if err != nil {
+		return err
+	}
+
+	db.lc.Debugf("deleted count: %v\n", res.DeletedCount)
 	return nil
 }
 
-func (db MongoDB) UpdatePassword(email string) error {
-	return nil
+func (db MongoDB) filter(bsonMap bson.M, searchParams map[string]interface{}) bson.M {
+	for key, value := range searchParams {
+		bsonMap[key] = value
+	}
+	return bsonMap
 }
 
-func (db MongoDB) DeleteUser(email string) error {
-	return nil
+func (db MongoDB) createUpdateSetCommand(items map[string]interface{}) bson.D {
+	bsonElements := bson.D{}
+	for key, value := range items {
+		bsonElements = append(bsonElements, bson.E{Key: key, Value: value})
+	}
+	return bson.D{{Key: "$set", Value: bsonElements}}
 }

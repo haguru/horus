@@ -1,27 +1,30 @@
 syntax = "proto3";
 
-package crumbdb;
+package useracctdb;
 
 option go_package = "github.com/haguru/horus/useracctdb/internal/routes/protos";
 
 message User {
   // @gotags: bson:"_id,omitempty"
   string id = 1;
-  // @gotags: bson:"email"
+  // @gotags: bson:"email" validate:"required,email"`
   string email = 2;
-  // @gotags: bson:"username"
+  // @gotags: bson:"username" validate:"required,min=1,max=20"
   string username = 3;
-  // @gotags: bson:"message"
+  // @gotags: bson:"password" validate:"required,min=10,max=128"
   string password = 4;
 
 }
 
 message UserRequest {
-  string username = 1;
+  // @gotags: bson:"username" validate:"required,email"
+  string email = 1; 
 }
 
 message PasswordRequest {
-  string username = 1;
+  // @gotags: bson:"username" validate:"required,email"
+  string email = 1;
+  // @gotags: bson:"password" validate:"required,min=10,max=128"
   string password = 2;
 }
 
@@ -34,9 +37,9 @@ message Status {
 }
 
 service UserAcctDB{
-  rpc Create(User) returns (Id);                 // Create
-  rpc GetUser(UserRequest) returns (User);    // Read
-  rpc Update(PasswordRequest) returns (Status);                 // Update
-  rpc Delete(UserRequest) returns (Status);                    // Delete
+  rpc Create(User) returns (Id);                          // Create
+  rpc GetUser(UserRequest) returns (User);                // Read
+  rpc UpdatePassword(PasswordRequest) returns (Status);   // Update
+  rpc Delete(UserRequest) returns (Status);               // Delete
 }
 

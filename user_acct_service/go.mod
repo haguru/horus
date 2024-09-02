@@ -4,6 +4,7 @@ go 1.22.6
 
 require (
 	github.com/edgexfoundry/go-mod-core-contracts v0.1.149
+	github.com/go-playground/validator/v10 v10.3.0
 	github.com/stretchr/testify v1.5.1
 	go.mongodb.org/mongo-driver v1.16.1
 	google.golang.org/grpc v1.66.0
@@ -16,10 +17,13 @@ require (
 	github.com/fxamacker/cbor/v2 v2.2.0 // indirect
 	github.com/go-kit/kit v0.8.0 // indirect
 	github.com/go-logfmt/logfmt v0.4.0 // indirect
+	github.com/go-playground/locales v0.13.0 // indirect
+	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515 // indirect
+	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/objx v0.1.0 // indirect

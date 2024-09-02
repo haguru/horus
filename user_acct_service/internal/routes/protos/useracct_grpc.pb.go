@@ -19,10 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserAcctDB_Create_FullMethodName  = "/crumbdb.UserAcctDB/Create"
-	UserAcctDB_GetUser_FullMethodName = "/crumbdb.UserAcctDB/GetUser"
-	UserAcctDB_Update_FullMethodName  = "/crumbdb.UserAcctDB/Update"
-	UserAcctDB_Delete_FullMethodName  = "/crumbdb.UserAcctDB/Delete"
+	UserAcctDB_Create_FullMethodName         = "/useracctdb.UserAcctDB/Create"
+	UserAcctDB_GetUser_FullMethodName        = "/useracctdb.UserAcctDB/GetUser"
+	UserAcctDB_UpdatePassword_FullMethodName = "/useracctdb.UserAcctDB/UpdatePassword"
+	UserAcctDB_Delete_FullMethodName         = "/useracctdb.UserAcctDB/Delete"
 )
 
 // UserAcctDBClient is the client API for UserAcctDB service.
@@ -31,7 +31,7 @@ const (
 type UserAcctDBClient interface {
 	Create(ctx context.Context, in *User, opts ...grpc.CallOption) (*Id, error)
 	GetUser(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*User, error)
-	Update(ctx context.Context, in *PasswordRequest, opts ...grpc.CallOption) (*Status, error)
+	UpdatePassword(ctx context.Context, in *PasswordRequest, opts ...grpc.CallOption) (*Status, error)
 	Delete(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*Status, error)
 }
 
@@ -63,10 +63,10 @@ func (c *userAcctDBClient) GetUser(ctx context.Context, in *UserRequest, opts ..
 	return out, nil
 }
 
-func (c *userAcctDBClient) Update(ctx context.Context, in *PasswordRequest, opts ...grpc.CallOption) (*Status, error) {
+func (c *userAcctDBClient) UpdatePassword(ctx context.Context, in *PasswordRequest, opts ...grpc.CallOption) (*Status, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Status)
-	err := c.cc.Invoke(ctx, UserAcctDB_Update_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, UserAcctDB_UpdatePassword_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func (c *userAcctDBClient) Delete(ctx context.Context, in *UserRequest, opts ...
 type UserAcctDBServer interface {
 	Create(context.Context, *User) (*Id, error)
 	GetUser(context.Context, *UserRequest) (*User, error)
-	Update(context.Context, *PasswordRequest) (*Status, error)
+	UpdatePassword(context.Context, *PasswordRequest) (*Status, error)
 	Delete(context.Context, *UserRequest) (*Status, error)
 	mustEmbedUnimplementedUserAcctDBServer()
 }
@@ -107,8 +107,8 @@ func (UnimplementedUserAcctDBServer) Create(context.Context, *User) (*Id, error)
 func (UnimplementedUserAcctDBServer) GetUser(context.Context, *UserRequest) (*User, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
-func (UnimplementedUserAcctDBServer) Update(context.Context, *PasswordRequest) (*Status, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+func (UnimplementedUserAcctDBServer) UpdatePassword(context.Context, *PasswordRequest) (*Status, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdatePassword not implemented")
 }
 func (UnimplementedUserAcctDBServer) Delete(context.Context, *UserRequest) (*Status, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
@@ -170,20 +170,20 @@ func _UserAcctDB_GetUser_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserAcctDB_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _UserAcctDB_UpdatePassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PasswordRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserAcctDBServer).Update(ctx, in)
+		return srv.(UserAcctDBServer).UpdatePassword(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: UserAcctDB_Update_FullMethodName,
+		FullMethod: UserAcctDB_UpdatePassword_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserAcctDBServer).Update(ctx, req.(*PasswordRequest))
+		return srv.(UserAcctDBServer).UpdatePassword(ctx, req.(*PasswordRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -210,7 +210,7 @@ func _UserAcctDB_Delete_Handler(srv interface{}, ctx context.Context, dec func(i
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var UserAcctDB_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "crumbdb.UserAcctDB",
+	ServiceName: "useracctdb.UserAcctDB",
 	HandlerType: (*UserAcctDBServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -222,8 +222,8 @@ var UserAcctDB_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserAcctDB_GetUser_Handler,
 		},
 		{
-			MethodName: "Update",
-			Handler:    _UserAcctDB_Update_Handler,
+			MethodName: "UpdatePassword",
+			Handler:    _UserAcctDB_UpdatePassword_Handler,
 		},
 		{
 			MethodName: "Delete",
