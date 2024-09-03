@@ -6,7 +6,6 @@ import (
 	"github.com/edgexfoundry/go-mod-core-contracts/v3/clients/logger"
 	"github.com/haguru/horus/crumbdb/config"
 	pb "github.com/haguru/horus/crumbdb/internal/routes/protos"
-	"github.com/haguru/horus/crumbdb/pkg/models"
 	"github.com/haguru/horus/crumbdb/pkg/mongodb/interfaces"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -74,11 +73,9 @@ func (r *Route) GetCrumbs(point *pb.Point, stream pb.CrumbDB_GetCrumbsServer) er
 func (r *Route) Update(ctx context.Context, crumb *pb.Crumb) (*pb.Id, error) {
 	r.lc.Debug("received new update request")
 
-	messageUpdate := models.MessageUpdateRequest{
-		Message: crumb.GetMessage(),
-	}
+	messageItem := map[string]interface{}{"message": crumb.Message}
 
-	err := r.dbClient.Update(r.dbCconfig.Name, r.dbCconfig.Collection, crumb.Id, messageUpdate)
+	err := r.dbClient.Update(r.dbCconfig.Name, r.dbCconfig.Collection, crumb.Id, messageItem)
 	if err != nil {
 		r.lc.Errorf("failed to update data with id '%v' : %v", crumb.GetId(), err)
 		return nil, err

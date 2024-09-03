@@ -175,7 +175,7 @@ func (db MongoDB) FindOne(databaseName string, collectionName string, id string)
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 
 	// get bson id filter
-	objid := db.idFilter(id)
+	objid := db.filter(map[string]interface{}{_ID:id})
 
 	results := collection.FindOne(context.TODO(), objid)
 	var data bson.D
@@ -188,19 +188,18 @@ func (db MongoDB) FindOne(databaseName string, collectionName string, id string)
 }
 
 // Update modifies a document given a ID. Returns a nil error when sucessful
-func (db MongoDB) Update(databaseName string, collectionName string, id string, crumb interface{}) error {
+func (db MongoDB) Update(databaseName string, collectionName string, id string, items map[string]interface{}) error {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
-	c, err := db.setMessageUpdate(crumb)
-	if err != nil {
-		return err
-	}
+	
+	setcommand := db.createUpdateSetCommand(items)
+	
 
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
 	}
 
-	_, err = collection.UpdateByID(context.TODO(), objectID, c)
+	_, err = collection.UpdateByID(context.TODO(), objectID, setcommand)
 	if err != nil {
 		return err
 	}
@@ -211,7 +210,13 @@ func (db MongoDB) Update(databaseName string, collectionName string, id string, 
 // Delete removes a document from the database. Returns nil error if successful
 func (db MongoDB) Delete(databaseName string, collectionName string, id string) error {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
-	res, err := collection.DeleteOne(context.TODO(), db.idFilter(id))
+	
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	filter := db.filter(map[string]interface{}{_ID:objectID})
+	res, err := collection.DeleteOne(context.TODO(), filter)
 	if err != nil {
 		return err
 	}
@@ -231,37 +236,18 @@ func (db MongoDB) spatialFilter(point interface{}) bson.D {
 	}
 }
 
-func (db MongoDB) idFilter(id string) bson.D {
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		panic(err)
+func (db MongoDB) filter(searchParams map[string]interface{}) bson.M {
+	bsonMap := bson.M{}
+	for key, value := range searchParams {
+		bsonMap[key] = value
 	}
-
-	return bson.D{{Key: _ID, Value: objectID}}
+	return bsonMap
 }
 
-func (db MongoDB) setMessageUpdate(data interface{}) (bson.D, error) {
-	bsonData := bson.D{}
-	err := db.convertToBson(data, &bsonData)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal data to bson.D")
+func (db MongoDB) createUpdateSetCommand(items map[string]interface{}) bson.D {
+	bsonElements := bson.D{}
+	for key, value := range items {
+		bsonElements = append(bsonElements, bson.E{Key: key, Value: value})
 	}
-
-	return bson.D{
-		{Key: "$set", Value: bsonData},
-	}, nil
-}
-
-func (db MongoDB) convertToBson(value interface{}, doc *bson.D) error {
-	data, err := bson.Marshal(value)
-	if err != nil {
-		return err
-	}
-
-	err = bson.Unmarshal(data, &doc)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return bson.D{{Key: "$set", Value: bsonElements}}
 }
