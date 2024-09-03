@@ -32,7 +32,8 @@ func NewApp() (*App, error) {
 	lc := logger.NewClient(serviceConfig.Name, serviceConfig.LogLevel)
 
 	host := serviceConfig.Database.Host
-	db, err := mongodb.NewMongoDB(host, 27017, lc, nil)
+	port := serviceConfig.Database.Port
+	db, err := mongodb.NewMongoDB(host, port, lc, nil)
 	if err != nil {
 		lc.Errorf("failed to connect, %v\n", err)
 		return nil, err
