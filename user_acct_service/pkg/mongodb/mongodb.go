@@ -120,12 +120,17 @@ func (db MongoDB) Get(databaseName string, collectionName string, filterParams m
 	return &data, nil
 }
 
-func (db MongoDB) Update(databaseName string, collectionName string, filterParams map[string]interface{}, items map[string]interface{}) error {
+func (db MongoDB) Update(databaseName string, collectionName string, filterParams map[string]interface{}, updateOperator string, items map[string]interface{}) error {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 
 	filter := db.filter(bson.M{}, filterParams)
-	updateItems := db.createUpdateSetCommand(items)
-	_, err := collection.UpdateOne(context.TODO(), filter, updateItems)
+
+	updateItems, err := db.updateCommand(updateOperator,items)
+	if err != nil{
+		return err
+	}
+
+	_, err = collection.UpdateOne(context.TODO(), filter, updateItems)
 	if err != nil {
 		return err
 	}
@@ -153,10 +158,40 @@ func (db MongoDB) filter(bsonMap bson.M, searchParams map[string]interface{}) bs
 	return bsonMap
 }
 
-func (db MongoDB) createUpdateSetCommand(items map[string]interface{}) bson.D {
-	bsonElements := bson.D{}
-	for key, value := range items {
-		bsonElements = append(bsonElements, bson.E{Key: key, Value: value})
+func (db MongoDB) DocumentExist(databaseName string, collectionName string, filterParams map[string]interface{}) (bool,error){
+	collection := db.Client.Database(databaseName).Collection(collectionName)
+	
+	filter := db.filter(bson.M{}, filterParams)
+	
+	found, err := collection.CountDocuments(context.Background(), filter, options.Count().SetLimit(1))
+	if err != nil {
+		return false, err
 	}
-	return bson.D{{Key: "$set", Value: bsonElements}}
+	
+	return found > 0, nil
+}
+
+func (db MongoDB) updateCommand(updateOperator string, items map[string]interface{}) (interface{},error){
+	switch updateOperator {
+	case "currentDate":
+		return CurrentDateOp{CurrentDate: items}, nil
+	case "inc":
+		return IncOp{Inc: items}, nil
+	case "max":
+		return MaxOp{Max: items}, nil
+	case "min":
+		return MinOp{Min: items}, nil
+	case "mul":
+		return MulOp{Mul: items}, nil
+	case "rename":
+		return RenameOp{Rename: items}, nil
+	case "set":
+		return SetOp{Set: items}, nil
+	case "setOnInsert":
+		return SetOnInsertOp{SetOnInsert: items}, nil
+	case "unset":
+		return UnsetOp{Unset: items}, nil
+	}
+
+	return nil, fmt.Errorf("failed to create update command")
 }

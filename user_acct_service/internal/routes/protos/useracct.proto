@@ -17,12 +17,12 @@ message User {
 }
 
 message UserRequest {
-  // @gotags: bson:"username" validate:"required,email"
+  // @gotags: bson:"email" validate:"required,email"
   string email = 1; 
 }
 
 message PasswordRequest {
-  // @gotags: bson:"username" validate:"required,email"
+  // @gotags: bson:"email" validate:"required,email"
   string email = 1;
   // @gotags: bson:"password" validate:"required,min=10,max=128"
   string password = 2;

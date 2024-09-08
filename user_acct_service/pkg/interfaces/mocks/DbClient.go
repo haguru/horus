@@ -77,6 +77,34 @@ func (_m *DbClient) Disconnect(_a0 context.Context) error {
 	return r0
 }
 
+// DocumentExist provides a mock function with given fields: databaseName, collectionName, filterParams
+func (_m *DbClient) DocumentExist(databaseName string, collectionName string, filterParams map[string]interface{}) (bool, error) {
+	ret := _m.Called(databaseName, collectionName, filterParams)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DocumentExist")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, map[string]interface{}) (bool, error)); ok {
+		return rf(databaseName, collectionName, filterParams)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, map[string]interface{}) bool); ok {
+		r0 = rf(databaseName, collectionName, filterParams)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, map[string]interface{}) error); ok {
+		r1 = rf(databaseName, collectionName, filterParams)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Get provides a mock function with given fields: databaseName, collectionName, filterParams
 func (_m *DbClient) Get(databaseName string, collectionName string, filterParams map[string]interface{}) (interface{}, error) {
 	ret := _m.Called(databaseName, collectionName, filterParams)
@@ -107,17 +135,17 @@ func (_m *DbClient) Get(databaseName string, collectionName string, filterParams
 	return r0, r1
 }
 
-// Update provides a mock function with given fields: databaseName, collectionName, filterParms, updateItems
-func (_m *DbClient) Update(databaseName string, collectionName string, filterParms map[string]interface{}, updateItems map[string]interface{}) error {
-	ret := _m.Called(databaseName, collectionName, filterParms, updateItems)
+// Update provides a mock function with given fields: databaseName, collectionName, filterParams, updateType, items
+func (_m *DbClient) Update(databaseName string, collectionName string, filterParams map[string]interface{}, updateType string, items map[string]interface{}) error {
+	ret := _m.Called(databaseName, collectionName, filterParams, updateType, items)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Update")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, map[string]interface{}, map[string]interface{}) error); ok {
-		r0 = rf(databaseName, collectionName, filterParms, updateItems)
+	if rf, ok := ret.Get(0).(func(string, string, map[string]interface{}, string, map[string]interface{}) error); ok {
+		r0 = rf(databaseName, collectionName, filterParams, updateType, items)
 	} else {
 		r0 = ret.Error(0)
 	}

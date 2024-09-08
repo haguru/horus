@@ -100,8 +100,8 @@ type UserRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// @gotags: bson:"username" validate:"required,email"
-	Email string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty" bson:"username" validate:"required,email"`
+	// @gotags: bson:"email" validate:"required,email"
+	Email string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty" bson:"email" validate:"required,email"`
 }
 
 func (x *UserRequest) Reset() {
@@ -148,8 +148,8 @@ type PasswordRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// @gotags: bson:"username" validate:"required,email"
-	Email string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty" bson:"username" validate:"required,email"`
+	// @gotags: bson:"email" validate:"required,email"
+	Email string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty" bson:"email" validate:"required,email"`
 	// @gotags: bson:"password" validate:"required,min=10,max=128"
 	Password string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty" bson:"password" validate:"required,min=10,max=128"`
 }

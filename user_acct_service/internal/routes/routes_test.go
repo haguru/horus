@@ -25,13 +25,15 @@ func TestRoute_Create(t *testing.T) {
 		user *pb.User
 	}
 	tests := []struct {
-		name          string
-		fields        fields
-		args          args
-		dbClientRtn   error
-		dbClientIDRtn string
-		want          *pb.Id
-		wantErr       bool
+		name               string
+		fields             fields
+		args               args
+		createClientErrRtn error
+		createClientIDRtn  string
+		existClientRtn     bool
+		existClientErrRtn  error
+		want               *pb.Id
+		wantErr            bool
 	}{
 		{
 			name: "sucessful create",
@@ -51,12 +53,64 @@ func TestRoute_Create(t *testing.T) {
 					Password: "test_password",
 				},
 			},
-			dbClientRtn:   nil,
-			dbClientIDRtn: "test_id",
+			createClientErrRtn: nil,
+			createClientIDRtn:  "test_id",
+			existClientRtn: false,
+			existClientErrRtn: nil,
 			want: &pb.Id{
 				Value: "test_id",
 			},
 			wantErr: false,
+		},
+		{
+			name: "DocumentExist create",
+			fields: fields{
+				dbConfig: &config.Database{
+					Name:       "horus",
+					Collection: "users",
+				},
+				lc: logger.NewMockClient(),
+			},
+			args: args{
+				ctx: context.Background(),
+				user: &pb.User{
+					Id:       "test_id",
+					Email:    "test@horus.com",
+					Username: "test_username",
+					Password: "test_password",
+				},
+			},
+			createClientErrRtn: nil,
+			createClientIDRtn:  "test_id",
+			existClientRtn: true,
+			existClientErrRtn: nil,
+			want:nil,
+			wantErr: true,
+		},
+		{
+			name: "DocumentExist client error",
+			fields: fields{
+				dbConfig: &config.Database{
+					Name:       "horus",
+					Collection: "users",
+				},
+				lc: logger.NewMockClient(),
+			},
+			args: args{
+				ctx: context.Background(),
+				user: &pb.User{
+					Id:       "test_id",
+					Email:    "test@horus.com",
+					Username: "test_username",
+					Password: "test_password",
+				},
+			},
+			createClientErrRtn: nil,
+			createClientIDRtn:  "test_id",
+			existClientRtn: false,
+			existClientErrRtn: fmt.Errorf("failed"),
+			want: nil,
+			wantErr: true,
 		},
 		{
 			name: "validation error - no username",
@@ -76,10 +130,12 @@ func TestRoute_Create(t *testing.T) {
 					Password: "test_password",
 				},
 			},
-			dbClientRtn:   nil,
-			dbClientIDRtn: "",
-			want:          nil,
-			wantErr:       true,
+			createClientErrRtn: nil,
+			createClientIDRtn:  "",
+			existClientRtn: false,
+			existClientErrRtn: nil,
+			want:               nil,
+			wantErr:            true,
 		},
 		{
 			name: "validation error - no password",
@@ -99,10 +155,12 @@ func TestRoute_Create(t *testing.T) {
 					Password: "",
 				},
 			},
-			dbClientRtn:   nil,
-			dbClientIDRtn: "",
-			want:          nil,
-			wantErr:       true,
+			createClientErrRtn: nil,
+			createClientIDRtn:  "",
+			existClientRtn: false,
+			existClientErrRtn: nil,
+			want:               nil,
+			wantErr:            true,
 		},
 		{
 			name: "client error",
@@ -122,16 +180,19 @@ func TestRoute_Create(t *testing.T) {
 					Password: "test_password",
 				},
 			},
-			dbClientRtn:   fmt.Errorf("client failed"),
-			dbClientIDRtn: "",
-			want:          nil,
-			wantErr:       true,
+			createClientErrRtn: fmt.Errorf("client failed"),
+			createClientIDRtn:  "",
+			existClientRtn: false,
+			existClientErrRtn: nil,
+			want:               nil,
+			wantErr:            true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockClient := mocks.NewDbClient(t)
-			mockClient.On("Create", mock.Anything, mock.Anything, tt.args.user).Return(tt.dbClientIDRtn, tt.dbClientRtn).Maybe()
+			mockClient.On("Create", mock.Anything, mock.Anything, tt.args.user).Return(tt.createClientIDRtn, tt.createClientErrRtn).Maybe()
+			mockClient.On("DocumentExist", mock.Anything, mock.Anything, mock.Anything).Return(tt.existClientRtn, tt.existClientErrRtn).Maybe()
 			r := &Route{
 				dbConfig:  tt.fields.dbConfig,
 				dbClient:  mockClient,
@@ -370,7 +431,7 @@ func TestRoute_UpdatePassword(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockClient := mocks.NewDbClient(t)
-			mockClient.On("Update", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tt.dbClientRtn).Maybe()
+			mockClient.On("Update", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tt.dbClientRtn).Maybe()
 			r := &Route{
 				dbConfig:  tt.fields.dbCconfig,
 				dbClient:  mockClient,

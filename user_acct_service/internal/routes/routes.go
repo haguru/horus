@@ -17,6 +17,7 @@ import (
 const (
 	MIN_USERNAME_LEN = 1
 	MIN_PASSWORD_LEN = 10
+	UPDATE_OPERATOR = "set"
 )
 
 type Route struct {
@@ -46,6 +47,18 @@ func (r *Route) Create(ctx context.Context, user *pb.User) (*pb.Id, error) {
 
 		return nil, fmt.Errorf("validation error: %s", errors)
 	}
+
+	// Verify user does not exist
+	filterParams := map[string]interface{}{"email": user.GetEmail()}
+	exist, err := r.dbClient.DocumentExist(r.dbConfig.Name, r.dbConfig.Collection,filterParams)
+	if err != nil {
+		return nil, err
+	}
+	
+	if exist{
+		return nil, fmt.Errorf("user with email address exists")
+	}
+
 	id := &pb.Id{}
 	id.Value, err = r.dbClient.Create(r.dbConfig.Name, r.dbConfig.Collection, user)
 	if err != nil {
@@ -86,11 +99,11 @@ func (r *Route) UpdatePassword(ctx context.Context, passwdReq *pb.PasswordReques
 		status.Value = http.StatusBadRequest
 		return status, fmt.Errorf("validation error: %s", errors)
 	}
-
+	
 	filterParams := map[string]interface{}{"email": passwdReq.Email}
 	updateItem := map[string]interface{}{"password": passwdReq.Password}
-	err = r.dbClient.Update(r.dbConfig.Name, r.dbConfig.Collection, filterParams, updateItem)
-	if err != nil {
+	err = r.dbClient.Update(r.dbConfig.Name,r.dbConfig.Collection,filterParams,UPDATE_OPERATOR,updateItem)
+	if err != nil{
 		status.Value = http.StatusInternalServerError
 		return status, fmt.Errorf("database failed to update password: %v", err)
 	}
@@ -98,6 +111,7 @@ func (r *Route) UpdatePassword(ctx context.Context, passwdReq *pb.PasswordReques
 
 	return status, nil
 }
+
 
 func (r *Route) Delete(ctx context.Context, userReq *pb.UserRequest) (*pb.Status, error) {
 	status := &pb.Status{}
@@ -110,7 +124,7 @@ func (r *Route) Delete(ctx context.Context, userReq *pb.UserRequest) (*pb.Status
 		return status, fmt.Errorf("validation error: %s", errors)
 	}
 	filterParams := map[string]interface{}{"email": userReq.GetEmail()}
-	err = r.dbClient.Delete(r.dbConfig.Name, r.dbConfig.Collection, filterParams)
+	err = r.dbClient.Delete(r.dbConfig.Name,r.dbConfig.Collection,filterParams)
 	if err != nil {
 		status.Value = http.StatusInternalServerError
 		return status, fmt.Errorf("database failed to delete user: %v", err)
