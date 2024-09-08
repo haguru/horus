@@ -10,7 +10,7 @@ import (
 	"github.com/haguru/horus/crumbdb/config"
 	pb "github.com/haguru/horus/crumbdb/internal/routes/protos"
 	grpcMock "github.com/haguru/horus/crumbdb/internal/routes/protos/mocks"
-	"github.com/haguru/horus/crumbdb/pkg/mongodb/mocks"
+	"github.com/haguru/horus/crumbdb/pkg/mongodb/interfaces/mocks"
 	"github.com/stretchr/testify/mock"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -85,9 +85,9 @@ func TestRoute_Create(t *testing.T) {
 			mockClient.On("InsertRecord", mock.Anything, mock.Anything, mock.Anything).Return(tt.insertRecordRtn, tt.errorRtn)
 
 			r := &Route{
-				dbCconfig: tt.fields.dbCconfig,
-				dbClient:  mockClient,
-				lc:        tt.fields.lc,
+				dbConfig: tt.fields.dbCconfig,
+				dbClient: mockClient,
+				lc:       tt.fields.lc,
 			}
 
 			got, err := r.Create(tt.args.ctx, tt.args.crumb)
@@ -179,9 +179,9 @@ func TestRoute_GetCrumbs(t *testing.T) {
 			mockClient := mocks.NewClient(t)
 			mockClient.On("SpaitalQuery", mock.Anything, mock.Anything, mock.Anything).Return(tt.clientRtn, tt.clientErrorRtn)
 			r := &Route{
-				dbCconfig: tt.fields.dbCconfig,
-				dbClient:  mockClient,
-				lc:        tt.fields.lc,
+				dbConfig: tt.fields.dbCconfig,
+				dbClient: mockClient,
+				lc:       tt.fields.lc,
 			}
 			if err := r.GetCrumbs(tt.point, stream); (err != nil) != tt.wantErr {
 				t.Errorf("Route.GetCrumbs() error = %v, wantErr %v", err, tt.wantErr)
@@ -256,9 +256,9 @@ func TestRoute_Update(t *testing.T) {
 			mockClient := mocks.NewClient(t)
 			mockClient.On("Update", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tt.clientErrorRtn)
 			r := &Route{
-				dbCconfig: tt.fields.dbCconfig,
-				dbClient:  mockClient,
-				lc:        tt.fields.lc,
+				dbConfig: tt.fields.dbCconfig,
+				dbClient: mockClient,
+				lc:       tt.fields.lc,
 			}
 			got, err := r.Update(tt.args.ctx, tt.args.crumb)
 			if (err != nil) != tt.wantErr {
@@ -335,9 +335,9 @@ func TestRoute_Delete(t *testing.T) {
 			mockClient := mocks.NewClient(t)
 			mockClient.On("Delete", mock.Anything, mock.Anything, mock.Anything).Return(tt.clientErrorRtn)
 			r := &Route{
-				dbCconfig: tt.fields.dbCconfig,
-				dbClient:  mockClient,
-				lc:        tt.fields.lc,
+				dbConfig: tt.fields.dbCconfig,
+				dbClient: mockClient,
+				lc:       tt.fields.lc,
 			}
 			got, err := r.Delete(tt.args.ctx, tt.args.id)
 			if (err != nil) != tt.wantErr {

@@ -15,6 +15,7 @@ import (
 
 const (
 	MAX_DISTANCE       = 100
+	MIN_DISTANCE       = 0
 	MAXPOOLSIZE        = 20
 	SPATIAL_INDEX_TYPE = "2dsphere"
 	SPATIAL_INDEX_KEY  = "location"
@@ -129,9 +130,13 @@ func (db MongoDB) InsertRecord(databaseName string, collectionName string, doc i
 
 // SpaitalQuery queries database for data based on coordinates. Returns array of bson.D and error
 // if error occurs a nil is returned as well as an error
-func (db MongoDB) SpaitalQuery(point interface{}, databasName string, collectionName string) ([]bson.D, error) {
-	filter := db.spatialFilter(point)
-	collection := db.Client.Database(databasName).Collection(collectionName)
+func (db MongoDB) SpaitalQuery(coordinates []float64, databaseName string, collectionName string) ([]bson.D, error) {
+	filter, err := NewSpatialQueryCommand(OP_TYPE_NEAR, POINT_TYPE_MULTI_POINT, coordinates, MAX_DISTANCE, MIN_DISTANCE)
+	if err != nil {
+		return nil, fmt.Errorf("failed to perforom spatial query: %v", err)
+	}
+
+	collection := db.Client.Database(databaseName).Collection(collectionName)
 
 	output, err := collection.Find(context.TODO(), filter)
 	if err != nil {
@@ -175,7 +180,7 @@ func (db MongoDB) FindOne(databaseName string, collectionName string, id string)
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 
 	// get bson id filter
-	objid := db.filter(map[string]interface{}{_ID:id})
+	objid := db.filter(map[string]interface{}{_ID: id})
 
 	results := collection.FindOne(context.TODO(), objid)
 	var data bson.D
@@ -190,9 +195,8 @@ func (db MongoDB) FindOne(databaseName string, collectionName string, id string)
 // Update modifies a document given a ID. Returns a nil error when sucessful
 func (db MongoDB) Update(databaseName string, collectionName string, id string, items map[string]interface{}) error {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
-	
+
 	setcommand := db.createUpdateSetCommand(items)
-	
 
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -210,12 +214,12 @@ func (db MongoDB) Update(databaseName string, collectionName string, id string, 
 // Delete removes a document from the database. Returns nil error if successful
 func (db MongoDB) Delete(databaseName string, collectionName string, id string) error {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
-	
+
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
 	}
-	filter := db.filter(map[string]interface{}{_ID:objectID})
+	filter := db.filter(map[string]interface{}{_ID: objectID})
 	res, err := collection.DeleteOne(context.TODO(), filter)
 	if err != nil {
 		return err
@@ -223,17 +227,6 @@ func (db MongoDB) Delete(databaseName string, collectionName string, id string) 
 
 	db.lc.Debugf("deleted count: %v\n", res.DeletedCount)
 	return nil
-}
-
-func (db MongoDB) spatialFilter(point interface{}) bson.D {
-	return bson.D{
-		{Key: SPATIAL_INDEX_KEY, Value: bson.D{
-			{Key: "$near", Value: bson.D{
-				{Key: "$geometry", Value: point},
-				{Key: "$maxDistance", Value: MAX_DISTANCE},
-			}},
-		}},
-	}
 }
 
 func (db MongoDB) filter(searchParams map[string]interface{}) bson.M {

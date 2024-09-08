@@ -11,24 +11,24 @@ import (
 )
 
 type Route struct {
-	dbCconfig *config.Database
-	dbClient  interfaces.Client
-	lc        logger.LoggingClient
+	dbConfig *config.Database
+	dbClient interfaces.Client
+	lc       logger.LoggingClient
 	pb.UnimplementedCrumbDBServer
 }
 
 func NewRoute(lc logger.LoggingClient, config *config.Database, dbclient interfaces.Client) *Route {
 	return &Route{
-		dbCconfig: config,
-		dbClient:  dbclient,
-		lc:        lc,
+		dbConfig: config,
+		dbClient: dbclient,
+		lc:       lc,
 	}
 }
 
 func (r *Route) Create(ctx context.Context, crumb *pb.Crumb) (*pb.Id, error) {
 	r.lc.Debugf("received Create request: %v", crumb)
 
-	id, err := r.dbClient.InsertRecord(r.dbCconfig.Name, r.dbCconfig.Collection, crumb)
+	id, err := r.dbClient.InsertRecord(r.dbConfig.Name, r.dbConfig.Collection, crumb)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func (r *Route) Create(ctx context.Context, crumb *pb.Crumb) (*pb.Id, error) {
 func (r *Route) GetCrumbs(point *pb.Point, stream pb.CrumbDB_GetCrumbsServer) error {
 	r.lc.Debug("received new GetCumbs request")
 
-	data, err := r.dbClient.SpaitalQuery(point, r.dbCconfig.Name, r.dbCconfig.Collection)
+	data, err := r.dbClient.SpaitalQuery(point.GetCoordinates(), r.dbConfig.Name, r.dbConfig.Collection)
 	if err != nil {
 		r.lc.Errorf("failed to run spatial query: %v", err)
 		return err
@@ -75,7 +75,7 @@ func (r *Route) Update(ctx context.Context, crumb *pb.Crumb) (*pb.Id, error) {
 
 	messageItem := map[string]interface{}{"message": crumb.Message}
 
-	err := r.dbClient.Update(r.dbCconfig.Name, r.dbCconfig.Collection, crumb.Id, messageItem)
+	err := r.dbClient.Update(r.dbConfig.Name, r.dbConfig.Collection, crumb.Id, messageItem)
 	if err != nil {
 		r.lc.Errorf("failed to update data with id '%v' : %v", crumb.GetId(), err)
 		return nil, err
@@ -88,7 +88,7 @@ func (r *Route) Update(ctx context.Context, crumb *pb.Crumb) (*pb.Id, error) {
 
 func (r *Route) Delete(ctx context.Context, id *pb.Id) (*pb.Id, error) {
 	r.lc.Debug("received new Delete request")
-	err := r.dbClient.Delete(r.dbCconfig.Name, r.dbCconfig.Collection, id.GetValue())
+	err := r.dbClient.Delete(r.dbConfig.Name, r.dbConfig.Collection, id.GetValue())
 	if err != nil {
 		r.lc.Errorf("failed to delete data with id '%v': %v", id.GetValue(), err)
 		return nil, err

@@ -17,8 +17,10 @@ message Crumb {
 }
 
 message Point {
-  repeated double coordinates = 1;
-  string type = 2;
+  // @gotags: bson:"type"
+  string type = 1;
+  // @gotags: bson:"coordinates"
+  repeated double coordinates = 2;
 }
 
 message Id{

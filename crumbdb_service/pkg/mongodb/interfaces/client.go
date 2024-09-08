@@ -16,7 +16,7 @@ type Client interface {
 	FindOne(databaseName string, collectionName string, id string) (*bson.D, error)
 	InsertRecord(databaseName string, collectionName string, doc interface{}) (string, error)
 	Ping(client *mongo.Client) error
-	SpaitalQuery(point interface{}, databasName string, collectionName string) ([]bson.D, error)
+	SpaitalQuery(coordinates []float64, databasName string, collectionName string) ([]bson.D, error)
 	Update(databaseName string, collectionName string, id string, items map[string]interface{}) error
 	// SpatialFilter(models.Point) bson.D
 }
