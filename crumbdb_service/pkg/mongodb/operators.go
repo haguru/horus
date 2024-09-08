@@ -78,11 +78,11 @@ func NewSpatialQueryCommand(opType string, pointType string, coordinates []float
 
 	case POINT_TYPE_MULTI_POINT:
 		if opType == OP_TYPE_GEO_WITHIN {
-			return nil, fmt.Errorf("point type %v not allowed", pointType)
+			return nil, fmt.Errorf("point type %v not supported", pointType)
 		}
 		geometryOp.Geometry.Type = POINT_TYPE_MULTI_POINT
 	default:
-		return nil, fmt.Errorf("point type %v not allowed", pointType)
+		return nil, fmt.Errorf("point type %v not supported", pointType)
 	}
 
 	switch opType {
