@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package followerdb;
+
+option go_package = "github.com/haguru/horus/followerdb/internal/routes/protos";
+
+message Followee {
+  // @gotags: bson:"userId,omitempty"
+  string id = 1;
+  // @gotags: bson:"followerUserId,omitempty"
+  string follower_id = 2;
+}
+
+message Id{
+  string value = 1;
+}
+message Status {
+  int32 value = 1;
+}
+
+// TODO
+service FollowerDB{
+  rpc CreateFollowee(Followee) returns (Id);                          // Create
+  rpc GetFollowers(Id) returns (stream Id);                // Read
+  // rpc UpdateFollower(PasswordRequest) returns (Status);   // Update
+  rpc DeleteFollower(Followee) returns (Status);               // Delete
+}
