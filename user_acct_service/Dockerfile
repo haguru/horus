@@ -31,4 +31,4 @@ COPY --from=builder /app/useracctdb /useracctdb
 
 EXPOSE 50053
 
-CMD ["/crumbdb"]
+CMD ["/useracct"]

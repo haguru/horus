@@ -40,12 +40,6 @@ func NewApp() (*App, error) {
 		return nil, err
 	}
 
-	// dbConfig := serviceConfig.Database
-	// err = db.CreateSpatialIndex(dbConfig.Name, dbConfig.Collection, mongodb.SPATIAL_INDEX_TYPE)
-	// if err != nil {
-	// 	lc.Errorf("failed to create spatial index: %v", err)
-	// 	return nil, err
-	// }
 	route := routes.NewRoute(lc, &serviceConfig.Database, db)
 	return &App{
 		LoggingClient:  lc,
