@@ -43,8 +43,8 @@ fmt:
 docker:
 	docker build \
 		--rm \
-		-t haguru/crumbdb:$(GIT_SHA) \
-		-t haguru/crumbdb:$(APPVERSION)-dev \
+		-t haguru/useracct:$(GIT_SHA) \
+		-t haguru/useracct:$(APPVERSION)-dev \
 		.
 
 run: build

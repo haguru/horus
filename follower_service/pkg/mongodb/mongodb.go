@@ -106,7 +106,7 @@ func (db MongoDB) Create(databaseName string, collectionName string, doc interfa
 	return objId.String(), nil
 }
 
-// Get reteives a document from database. Returns an interface containing the document and error if client fails to decode data. 
+// Get reteives a document from database. Returns an interface containing the document and error if client fails to decode data.
 func (db MongoDB) Get(databaseName string, collectionName string, filterParams map[string]interface{}) (interface{}, error) {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 
@@ -122,14 +122,38 @@ func (db MongoDB) Get(databaseName string, collectionName string, filterParams m
 	return &data, nil
 }
 
+// GetAll reteives all documents from database based on filter. Returns an interface containing the document and error if client fails to decode data.
+func (db MongoDB) GetAll(databaseName string, collectionName string, filterParams map[string]interface{}) (interface{}, error) {
+	collection := db.Client.Database(databaseName).Collection(collectionName)
+
+	filter := db.filter(bson.M{}, filterParams)
+
+	cur, err := collection.Find(context.TODO(), filter)
+	if err != nil {
+		return nil, err
+	}
+	var docs []bson.D
+	for cur.Next(context.TODO()) {
+		// Create a value into which the single document can be decoded
+		var elem bson.D
+		err := cur.Decode(&elem)
+		if err != nil {
+			return nil, err
+		}
+		docs = append(docs, elem)
+	}
+
+	return docs, nil
+}
+
 // Update updates a single document in database. Returns error if client fails to  update document or build update command
 func (db MongoDB) Update(databaseName string, collectionName string, filterParams map[string]interface{}, updateOperator string, items map[string]interface{}) error {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 
 	filter := db.filter(bson.M{}, filterParams)
 
-	updateItems, err := db.updateCommand(updateOperator,items)
-	if err != nil{
+	updateItems, err := db.updateCommand(updateOperator, items)
+	if err != nil {
 		return err
 	}
 
@@ -139,7 +163,6 @@ func (db MongoDB) Update(databaseName string, collectionName string, filterParam
 	}
 	return nil
 }
-
 
 // Delete removes  a single document from database. Returns error if client fails to remove document
 func (db MongoDB) Delete(databaseName string, collectionName string, filterParams map[string]interface{}) error {
@@ -164,21 +187,21 @@ func (db MongoDB) filter(bsonMap bson.M, searchParams map[string]interface{}) bs
 }
 
 // DocumentExist checks to see if a document exists in database. Returns bool and error if client fails to run command.
-func (db MongoDB) DocumentExist(databaseName string, collectionName string, filterParams map[string]interface{}) (bool,error){
+func (db MongoDB) DocumentExist(databaseName string, collectionName string, filterParams map[string]interface{}) (bool, error) {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
-	
+
 	filter := db.filter(bson.M{}, filterParams)
-	
+
 	found, err := collection.CountDocuments(context.Background(), filter, options.Count().SetLimit(1))
 	if err != nil {
 		return false, err
 	}
-	
+
 	return found > 0, nil
 }
 
-// updateCommand builds update command. Returns interface containing commandand, and error if update operator is not supported 
-func (db MongoDB) updateCommand(updateOperator string, items map[string]interface{}) (interface{},error){
+// updateCommand builds update command. Returns interface containing commandand, and error if update operator is not supported
+func (db MongoDB) updateCommand(updateOperator string, items map[string]interface{}) (interface{}, error) {
 	switch updateOperator {
 	case "currentDate":
 		return CurrentDateOp{CurrentDate: items}, nil

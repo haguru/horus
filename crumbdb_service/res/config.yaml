@@ -2,8 +2,8 @@ name: crumbdb
 port: 50051
 loglevel: DEBUG
 database:
-  host: localhost #mongodb://localhost:27017/?maxPoolSize=20&w=majority
-  port: 50052
+  host: crumbdb #mongodb://localhost:27017/?maxPoolSize=20&w=majority
+  port: 27017 #50052
   name: horus
   collection: crumbs
   options:

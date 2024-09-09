@@ -43,15 +43,15 @@ fmt:
 docker:
 	docker build \
 		--rm \
-		-t haguru/crumbdb:$(GIT_SHA) \
-		-t haguru/crumbdb:$(APPVERSION)-dev \
+		-t haguru/follower:$(GIT_SHA) \
+		-t haguru/follower:$(APPVERSION)-dev \
 		.
 
 run: build
 	./$(MICROSERVICE)
 
 launchdb: 
-	docker run --rm -d -p 50054:27017/tcp  $(DOCKERDATABASE)
+	docker run --rm -d -p 50056:27017/tcp  --name followerdb $(DOCKERDATABASE) 
 
 vendor:
 	go mod vendor

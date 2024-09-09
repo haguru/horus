@@ -1,0 +1,47 @@
+name: horus
+services:
+  crumbdb_service:
+    command: /crumbdb
+    container_name: crumb_service
+    depends_on:
+      - crumbdb
+    hostname: crumb_service
+    image: haguru/crumbdb:0.0.0-dev
+    # networks:
+    #   - horus_bridge
+    ports:
+      - 50051:50051
+  crumbdb:
+    image: mongodb/mongodb-community-server:latest
+    ports:
+      - 50052:27017
+  useracct_service:
+    command: /useracct
+    container_name: useracct_service
+    depends_on:
+      - useracctdb
+    hostname: useracct_service
+    image: haguru/useracct:0.0.0-dev
+    # networks:
+    #   - horus_bridge
+    ports:
+      - 50053:50053
+  useracctdb:
+    image: mongodb/mongodb-community-server:latest
+    ports:
+      - 50054:27017
+  follower_service:
+    command: /follower
+    container_name: follower_service
+    depends_on:
+      - followerdb
+    hostname: follower_service
+    image: haguru/follower:0.0.0-dev
+    # networks:
+    #   - horus_bridge
+    ports:
+      - 50055:50055
+  followerdb:
+    image: mongodb/mongodb-community-server:latest
+    ports:
+      - 50056:27017

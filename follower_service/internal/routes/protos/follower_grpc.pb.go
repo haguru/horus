@@ -19,19 +19,20 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	FollowerDB_CreateFollowee_FullMethodName = "/followerdb.FollowerDB/CreateFollowee"
-	FollowerDB_GetFollowers_FullMethodName   = "/followerdb.FollowerDB/GetFollowers"
-	FollowerDB_DeleteFollower_FullMethodName = "/followerdb.FollowerDB/DeleteFollower"
+	FollowerDB_AddFollow_FullMethodName    = "/followerdb.FollowerDB/AddFollow"
+	FollowerDB_GetFollowers_FullMethodName = "/followerdb.FollowerDB/GetFollowers"
+	FollowerDB_Unfollow_FullMethodName     = "/followerdb.FollowerDB/Unfollow"
 )
 
 // FollowerDBClient is the client API for FollowerDB service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// TODO
 type FollowerDBClient interface {
-	CreateFollowee(ctx context.Context, in *Followee, opts ...grpc.CallOption) (*Id, error)
+	AddFollow(ctx context.Context, in *Follow, opts ...grpc.CallOption) (*Id, error)
 	GetFollowers(ctx context.Context, in *Id, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Id], error)
-	// rpc UpdateFollower(PasswordRequest) returns (Status);   // Update
-	DeleteFollower(ctx context.Context, in *Followee, opts ...grpc.CallOption) (*Status, error)
+	Unfollow(ctx context.Context, in *Follow, opts ...grpc.CallOption) (*Status, error)
 }
 
 type followerDBClient struct {
@@ -42,10 +43,10 @@ func NewFollowerDBClient(cc grpc.ClientConnInterface) FollowerDBClient {
 	return &followerDBClient{cc}
 }
 
-func (c *followerDBClient) CreateFollowee(ctx context.Context, in *Followee, opts ...grpc.CallOption) (*Id, error) {
+func (c *followerDBClient) AddFollow(ctx context.Context, in *Follow, opts ...grpc.CallOption) (*Id, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Id)
-	err := c.cc.Invoke(ctx, FollowerDB_CreateFollowee_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, FollowerDB_AddFollow_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -71,10 +72,10 @@ func (c *followerDBClient) GetFollowers(ctx context.Context, in *Id, opts ...grp
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type FollowerDB_GetFollowersClient = grpc.ServerStreamingClient[Id]
 
-func (c *followerDBClient) DeleteFollower(ctx context.Context, in *Followee, opts ...grpc.CallOption) (*Status, error) {
+func (c *followerDBClient) Unfollow(ctx context.Context, in *Follow, opts ...grpc.CallOption) (*Status, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Status)
-	err := c.cc.Invoke(ctx, FollowerDB_DeleteFollower_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, FollowerDB_Unfollow_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -84,11 +85,12 @@ func (c *followerDBClient) DeleteFollower(ctx context.Context, in *Followee, opt
 // FollowerDBServer is the server API for FollowerDB service.
 // All implementations must embed UnimplementedFollowerDBServer
 // for forward compatibility.
+//
+// TODO
 type FollowerDBServer interface {
-	CreateFollowee(context.Context, *Followee) (*Id, error)
+	AddFollow(context.Context, *Follow) (*Id, error)
 	GetFollowers(*Id, grpc.ServerStreamingServer[Id]) error
-	// rpc UpdateFollower(PasswordRequest) returns (Status);   // Update
-	DeleteFollower(context.Context, *Followee) (*Status, error)
+	Unfollow(context.Context, *Follow) (*Status, error)
 	mustEmbedUnimplementedFollowerDBServer()
 }
 
@@ -99,14 +101,14 @@ type FollowerDBServer interface {
 // pointer dereference when methods are called.
 type UnimplementedFollowerDBServer struct{}
 
-func (UnimplementedFollowerDBServer) CreateFollowee(context.Context, *Followee) (*Id, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateFollowee not implemented")
+func (UnimplementedFollowerDBServer) AddFollow(context.Context, *Follow) (*Id, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddFollow not implemented")
 }
 func (UnimplementedFollowerDBServer) GetFollowers(*Id, grpc.ServerStreamingServer[Id]) error {
 	return status.Errorf(codes.Unimplemented, "method GetFollowers not implemented")
 }
-func (UnimplementedFollowerDBServer) DeleteFollower(context.Context, *Followee) (*Status, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteFollower not implemented")
+func (UnimplementedFollowerDBServer) Unfollow(context.Context, *Follow) (*Status, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Unfollow not implemented")
 }
 func (UnimplementedFollowerDBServer) mustEmbedUnimplementedFollowerDBServer() {}
 func (UnimplementedFollowerDBServer) testEmbeddedByValue()                    {}
@@ -129,20 +131,20 @@ func RegisterFollowerDBServer(s grpc.ServiceRegistrar, srv FollowerDBServer) {
 	s.RegisterService(&FollowerDB_ServiceDesc, srv)
 }
 
-func _FollowerDB_CreateFollowee_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Followee)
+func _FollowerDB_AddFollow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Follow)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FollowerDBServer).CreateFollowee(ctx, in)
+		return srv.(FollowerDBServer).AddFollow(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FollowerDB_CreateFollowee_FullMethodName,
+		FullMethod: FollowerDB_AddFollow_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FollowerDBServer).CreateFollowee(ctx, req.(*Followee))
+		return srv.(FollowerDBServer).AddFollow(ctx, req.(*Follow))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -158,20 +160,20 @@ func _FollowerDB_GetFollowers_Handler(srv interface{}, stream grpc.ServerStream)
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type FollowerDB_GetFollowersServer = grpc.ServerStreamingServer[Id]
 
-func _FollowerDB_DeleteFollower_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Followee)
+func _FollowerDB_Unfollow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Follow)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FollowerDBServer).DeleteFollower(ctx, in)
+		return srv.(FollowerDBServer).Unfollow(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FollowerDB_DeleteFollower_FullMethodName,
+		FullMethod: FollowerDB_Unfollow_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FollowerDBServer).DeleteFollower(ctx, req.(*Followee))
+		return srv.(FollowerDBServer).Unfollow(ctx, req.(*Follow))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -184,12 +186,12 @@ var FollowerDB_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*FollowerDBServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateFollowee",
-			Handler:    _FollowerDB_CreateFollowee_Handler,
+			MethodName: "AddFollow",
+			Handler:    _FollowerDB_AddFollow_Handler,
 		},
 		{
-			MethodName: "DeleteFollower",
-			Handler:    _FollowerDB_DeleteFollower_Handler,
+			MethodName: "Unfollow",
+			Handler:    _FollowerDB_Unfollow_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

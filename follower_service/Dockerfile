@@ -27,8 +27,8 @@ RUN apk --no-cache upgrade
 
 COPY --from=builder /app/LICENSE /LICENSE
 COPY --from=builder /app/res/ /res/
-COPY --from=builder /app/followerdb /followerdb
+COPY --from=builder /app/follower /follower
 
-EXPOSE 50053
+EXPOSE 50055
 
-CMD ["/followerdb"]
+CMD ["/follower"]

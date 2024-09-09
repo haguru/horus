@@ -27,7 +27,7 @@ RUN apk --no-cache upgrade
 
 COPY --from=builder /app/LICENSE /LICENSE
 COPY --from=builder /app/res/ /res/
-COPY --from=builder /app/useracctdb /useracctdb
+COPY --from=builder /app/useracct /useracct
 
 EXPOSE 50053
 
