@@ -9,6 +9,7 @@
 *.dylib
 crumbdb
 useracct
+follower
 
 # Test binary, built with `go test -c`
 *.test
