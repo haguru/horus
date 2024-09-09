@@ -7,8 +7,6 @@ services:
       - crumbdb
     hostname: crumb_service
     image: haguru/crumbdb:0.0.0-dev
-    # networks:
-    #   - horus_bridge
     ports:
       - 50051:50051
   crumbdb:
@@ -22,8 +20,6 @@ services:
       - useracctdb
     hostname: useracct_service
     image: haguru/useracct:0.0.0-dev
-    # networks:
-    #   - horus_bridge
     ports:
       - 50053:50053
   useracctdb:
@@ -37,8 +33,6 @@ services:
       - followerdb
     hostname: follower_service
     image: haguru/follower:0.0.0-dev
-    # networks:
-    #   - horus_bridge
     ports:
       - 50055:50055
   followerdb:
