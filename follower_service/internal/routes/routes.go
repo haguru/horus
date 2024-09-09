@@ -24,9 +24,9 @@ type Route struct {
 // TODO
 func NewRoute(lc logger.LoggingClient, config *config.Database, dbclient interfaces.DbClient) *Route {
 	return &Route{
-		dbConfig: config,
-		dbClient: dbclient,
-		lc:       lc,
+		dbConfig:  config,
+		dbClient:  dbclient,
+		lc:        lc,
 		validator: validator.New(),
 	}
 }
