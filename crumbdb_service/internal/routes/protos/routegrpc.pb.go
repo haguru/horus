@@ -27,12 +27,12 @@ type Crumb struct {
 
 	// @gotags: bson:"_id,omitempty"
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty" bson:"_id,omitempty"`
-	// @gotags: bson:"location"
-	Location *Point `protobuf:"bytes,2,opt,name=location,proto3" json:"location,omitempty" bson:"location"`
-	// @gotags: bson:"user"
-	User string `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty" bson:"user"`
-	// @gotags: bson:"message"
-	Message string `protobuf:"bytes,4,opt,name=message,proto3" json:"message,omitempty" bson:"message"`
+	// @gotags: bson:"location" validate:"required"
+	Location *Point `protobuf:"bytes,2,opt,name=location,proto3" json:"location,omitempty" bson:"location" validate:"required"`
+	// @gotags: bson:"user" validate:"required"
+	User string `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty" bson:"user" validate:"required"`
+	// @gotags: bson:"message" validate:"required"
+	Message string `protobuf:"bytes,4,opt,name=message,proto3" json:"message,omitempty" bson:"message" validate:"required"`
 }
 
 func (x *Crumb) Reset() {
@@ -100,10 +100,10 @@ type Point struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// @gotags: bson:"type"
-	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty" bson:"type"`
-	// @gotags: bson:"coordinates"
-	Coordinates []float64 `protobuf:"fixed64,2,rep,packed,name=coordinates,proto3" json:"coordinates,omitempty" bson:"coordinates"`
+	// @gotags: bson:"type" validate:"required,fieldcontains=Point"
+	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty" bson:"type" validate:"required,fieldcontains=Point"`
+	// @gotags: bson:"coordinates" validate:"required"
+	Coordinates []float64 `protobuf:"fixed64,2,rep,packed,name=coordinates,proto3" json:"coordinates,omitempty" bson:"coordinates" validate:"required"`
 }
 
 func (x *Point) Reset() {

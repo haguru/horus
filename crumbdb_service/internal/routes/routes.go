@@ -2,31 +2,45 @@ package routes
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/edgexfoundry/go-mod-core-contracts/v3/clients/logger"
 	"github.com/haguru/horus/crumbdb/config"
 	pb "github.com/haguru/horus/crumbdb/internal/routes/protos"
 	"github.com/haguru/horus/crumbdb/pkg/mongodb/interfaces"
+
+	"github.com/edgexfoundry/go-mod-core-contracts/v3/clients/logger"
+	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 type Route struct {
-	dbConfig *config.Database
-	dbClient interfaces.Client
-	lc       logger.LoggingClient
+	dbConfig  *config.Database
+	dbClient  interfaces.Client
+	lc        logger.LoggingClient
+	validator *validator.Validate
 	pb.UnimplementedCrumbDBServer
 }
 
 func NewRoute(lc logger.LoggingClient, config *config.Database, dbclient interfaces.Client) *Route {
 	return &Route{
-		dbConfig: config,
-		dbClient: dbclient,
-		lc:       lc,
+		dbConfig:  config,
+		dbClient:  dbclient,
+		lc:        lc,
+		validator: validator.New(),
 	}
 }
 
 func (r *Route) Create(ctx context.Context, crumb *pb.Crumb) (*pb.Id, error) {
 	r.lc.Debugf("received Create request: %v", crumb)
+
+	// Validate the User struct
+	err := r.validator.Struct(crumb)
+	if err != nil {
+		// Validation failed, handle the error
+		errors := err.(validator.ValidationErrors)
+
+		return nil, fmt.Errorf("validation error: %s", errors)
+	}
 
 	id, err := r.dbClient.InsertRecord(r.dbConfig.Name, r.dbConfig.Collection, crumb)
 	if err != nil {
@@ -38,6 +52,15 @@ func (r *Route) Create(ctx context.Context, crumb *pb.Crumb) (*pb.Id, error) {
 
 func (r *Route) GetCrumbs(point *pb.Point, stream pb.CrumbDB_GetCrumbsServer) error {
 	r.lc.Debug("received new GetCumbs request")
+
+	// Validate the User struct
+	err := r.validator.Struct(point)
+	if err != nil {
+		// Validation failed, handle the error
+		errors := err.(validator.ValidationErrors)
+
+		return fmt.Errorf("validation error: %s", errors)
+	}
 
 	data, err := r.dbClient.SpaitalQuery(point.GetCoordinates(), r.dbConfig.Name, r.dbConfig.Collection)
 	if err != nil {

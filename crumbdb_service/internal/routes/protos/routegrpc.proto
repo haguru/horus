@@ -7,19 +7,19 @@ option go_package = "github.com/haguru/horus/crumbdb/internal/routes/protos";
 message Crumb {
   // @gotags: bson:"_id,omitempty"
   string id = 1;
-  // @gotags: bson:"location"
+  // @gotags: bson:"location" validate:"required"
   Point location = 2;
-  // @gotags: bson:"user"
+  // @gotags: bson:"user" validate:"required"
   string user = 3;
-  // @gotags: bson:"message"
+  // @gotags: bson:"message" validate:"required"
   string message = 4;
 
 }
 
 message Point {
-  // @gotags: bson:"type"
+  // @gotags: bson:"type" validate:"required,fieldcontains=Point"
   string type = 1;
-  // @gotags: bson:"coordinates"
+  // @gotags: bson:"coordinates" validate:"required"
   repeated double coordinates = 2;
 }
 
