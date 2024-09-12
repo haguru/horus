@@ -111,6 +111,7 @@ func (r *Route) Update(ctx context.Context, crumb *pb.Crumb) (*pb.Id, error) {
 
 func (r *Route) Delete(ctx context.Context, id *pb.Id) (*pb.Id, error) {
 	r.lc.Debug("received new Delete request")
+	//TODO: if nothing was deleted an error should be returned
 	err := r.dbClient.Delete(r.dbConfig.Name, r.dbConfig.Collection, id.GetValue())
 	if err != nil {
 		r.lc.Errorf("failed to delete data with id '%v': %v", id.GetValue(), err)

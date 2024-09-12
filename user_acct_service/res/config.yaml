@@ -2,8 +2,8 @@ name: useracctdb
 port: 50053
 loglevel: DEBUG
 database:
-  host: useracctdb #mongodb://localhost:27017/?maxPoolSize=20&w=majority
-  port: 27017 # 50054
+  host: useracctdb 
+  port: 27017 
   name: horus
   collection: users
   options:
