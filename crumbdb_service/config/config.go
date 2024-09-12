@@ -11,17 +11,17 @@ const (
 )
 
 type ServiceConfig struct {
-	Name     string   `yaml:"name"`
-	LogLevel string   `yaml:"loglevel"`
-	Port     int      `yaml:"port"`
-	Database Database `yaml:"database"`
+	Name     string   `yaml:"name" validate:"required"`
+	LogLevel string   `yaml:"loglevel" validate:"required"`
+	Port     int      `yaml:"port" validate:"required"`
+	Database Database `yaml:"database" validate:"required"`
 }
 
 type Database struct {
-	Host       string        `yaml:"host"`
-	Port       int           `yaml:"port"`
-	Name       string        `yaml:"name"`
-	Collection string        `yaml:"collection"`
+	Host       string        `yaml:"host" validate:"required"`
+	Port       int           `yaml:"port" validate:"required"`
+	Name       string        `yaml:"name" validate:"required"`
+	Collection string        `yaml:"collection" validate:"required"`
 	Options    ServerOptions `yaml:"options"`
 }
 

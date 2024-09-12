@@ -21,12 +21,12 @@ type Route struct {
 	pb.UnimplementedCrumbDBServer
 }
 
-func NewRoute(lc logger.LoggingClient, config *config.Database, dbclient interfaces.Client) *Route {
+func NewRoute(lc logger.LoggingClient, config *config.Database, dbclient interfaces.Client, validator *validator.Validate) *Route {
 	return &Route{
 		dbConfig:  config,
 		dbClient:  dbclient,
 		lc:        lc,
-		validator: validator.New(),
+		validator: validator,
 	}
 }
 

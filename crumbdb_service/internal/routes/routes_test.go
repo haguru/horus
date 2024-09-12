@@ -72,13 +72,13 @@ func TestRoute_Create(t *testing.T) {
 				lc: logger.MockLogger{},
 			},
 			args: args{
-				ctx:   context.Background(),
+				ctx: context.Background(),
 				crumb: &pb.Crumb{
 					Location: &pb.Point{
-						Type: mongodb.POINT_TYPE_POINT,
+						Type:        mongodb.POINT_TYPE_POINT,
 						Coordinates: []float64{-122.66025176499872, 45.692956992343845},
 					},
-					User: "test_user",
+					User:    "test_user",
 					Message: "test_message",
 				},
 			},
@@ -94,9 +94,9 @@ func TestRoute_Create(t *testing.T) {
 			mockClient.On("InsertRecord", mock.Anything, mock.Anything, mock.Anything).Return(tt.insertRecordRtn, tt.errorRtn)
 
 			r := &Route{
-				dbConfig: tt.fields.dbCconfig,
-				dbClient: mockClient,
-				lc:       tt.fields.lc,
+				dbConfig:  tt.fields.dbCconfig,
+				dbClient:  mockClient,
+				lc:        tt.fields.lc,
 				validator: validator.New(),
 			}
 
@@ -189,9 +189,9 @@ func TestRoute_GetCrumbs(t *testing.T) {
 			mockClient := mocks.NewClient(t)
 			mockClient.On("SpaitalQuery", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tt.clientRtn, tt.clientErrorRtn)
 			r := &Route{
-				dbConfig: tt.fields.dbCconfig,
-				dbClient: mockClient,
-				lc:       tt.fields.lc,
+				dbConfig:  tt.fields.dbCconfig,
+				dbClient:  mockClient,
+				lc:        tt.fields.lc,
 				validator: validator.New(),
 			}
 			if err := r.GetCrumbs(tt.point, stream); (err != nil) != tt.wantErr {
@@ -267,9 +267,9 @@ func TestRoute_Update(t *testing.T) {
 			mockClient := mocks.NewClient(t)
 			mockClient.On("Update", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tt.clientErrorRtn)
 			r := &Route{
-				dbConfig: tt.fields.dbCconfig,
-				dbClient: mockClient,
-				lc:       tt.fields.lc,
+				dbConfig:  tt.fields.dbCconfig,
+				dbClient:  mockClient,
+				lc:        tt.fields.lc,
 				validator: validator.New(),
 			}
 			got, err := r.Update(tt.args.ctx, tt.args.crumb)
@@ -347,9 +347,9 @@ func TestRoute_Delete(t *testing.T) {
 			mockClient := mocks.NewClient(t)
 			mockClient.On("Delete", mock.Anything, mock.Anything, mock.Anything).Return(tt.clientErrorRtn)
 			r := &Route{
-				dbConfig: tt.fields.dbCconfig,
-				dbClient: mockClient,
-				lc:       tt.fields.lc,
+				dbConfig:  tt.fields.dbCconfig,
+				dbClient:  mockClient,
+				lc:        tt.fields.lc,
 				validator: validator.New(),
 			}
 			got, err := r.Delete(tt.args.ctx, tt.args.id)

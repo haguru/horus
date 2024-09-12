@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/v3/clients/logger"
+	"github.com/go-playground/validator/v10"
 	"github.com/haguru/horus/crumbdb/config"
 	"github.com/haguru/horus/crumbdb/internal/routes"
 	pb "github.com/haguru/horus/crumbdb/internal/routes/protos"
@@ -21,12 +22,21 @@ type App struct {
 	Route          *routes.Route
 	GrpcServer     *grpc.Server
 	DbServerClient interfaces.Client
+	validator      *validator.Validate
 }
 
 func NewApp() (*App, error) {
 	serviceConfig, err := config.ReadLocalConfig(config.CONFIG_PATH)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config locally: %v", err)
+	}
+	validate := validator.New()
+	err = validate.Struct(serviceConfig)
+	if err != nil {
+		// Validation failed, handle the error
+		errors := err.(validator.ValidationErrors)
+
+		return nil, fmt.Errorf("validation error: %s", errors)
 	}
 
 	lc := logger.NewClient(serviceConfig.Name, serviceConfig.LogLevel)
@@ -45,13 +55,14 @@ func NewApp() (*App, error) {
 		lc.Errorf("failed to create spatial index: %v", err)
 		return nil, err
 	}
-	route := routes.NewRoute(lc, &serviceConfig.Database, db)
+	route := routes.NewRoute(lc, &serviceConfig.Database, db, validate)
 	return &App{
 		LoggingClient:  lc,
 		AppCtx:         context.Background(),
 		ServiceConfig:  serviceConfig,
 		DbServerClient: db,
 		Route:          route,
+		validator:      validate,
 	}, nil
 }
 

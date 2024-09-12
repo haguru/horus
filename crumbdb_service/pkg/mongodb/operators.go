@@ -5,7 +5,7 @@ import "fmt"
 const (
 	POINT_TYPE_POLYGON       = "Polygon"
 	POINT_TYPE_MULTI_POLYGON = "MultiPolygon"
-	POINT_TYPE_POINT   = "Point"
+	POINT_TYPE_POINT         = "Point"
 
 	OP_TYPE_GEO_INTERSECTS = "geoIntersects"
 	OP_TYPE_GEO_WITHIN     = "geoWithin"
