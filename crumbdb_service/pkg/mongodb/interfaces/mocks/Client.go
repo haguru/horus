@@ -207,9 +207,9 @@ func (_m *Client) Ping(client *mongo.Client) error {
 	return r0
 }
 
-// SpaitalQuery provides a mock function with given fields: coordinates, databasName, collectionName
-func (_m *Client) SpaitalQuery(coordinates []float64, databasName string, collectionName string) ([]primitive.D, error) {
-	ret := _m.Called(coordinates, databasName, collectionName)
+// SpaitalQuery provides a mock function with given fields: pointType, coordinates, databaseName, collectionName
+func (_m *Client) SpaitalQuery(pointType string, coordinates []float64, databaseName string, collectionName string) ([]primitive.D, error) {
+	ret := _m.Called(pointType, coordinates, databaseName, collectionName)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SpaitalQuery")
@@ -217,19 +217,19 @@ func (_m *Client) SpaitalQuery(coordinates []float64, databasName string, collec
 
 	var r0 []primitive.D
 	var r1 error
-	if rf, ok := ret.Get(0).(func([]float64, string, string) ([]primitive.D, error)); ok {
-		return rf(coordinates, databasName, collectionName)
+	if rf, ok := ret.Get(0).(func(string, []float64, string, string) ([]primitive.D, error)); ok {
+		return rf(pointType, coordinates, databaseName, collectionName)
 	}
-	if rf, ok := ret.Get(0).(func([]float64, string, string) []primitive.D); ok {
-		r0 = rf(coordinates, databasName, collectionName)
+	if rf, ok := ret.Get(0).(func(string, []float64, string, string) []primitive.D); ok {
+		r0 = rf(pointType, coordinates, databaseName, collectionName)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]primitive.D)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func([]float64, string, string) error); ok {
-		r1 = rf(coordinates, databasName, collectionName)
+	if rf, ok := ret.Get(1).(func(string, []float64, string, string) error); ok {
+		r1 = rf(pointType, coordinates, databaseName, collectionName)
 	} else {
 		r1 = ret.Error(1)
 	}

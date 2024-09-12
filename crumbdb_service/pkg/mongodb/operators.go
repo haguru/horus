@@ -5,7 +5,7 @@ import "fmt"
 const (
 	POINT_TYPE_POLYGON       = "Polygon"
 	POINT_TYPE_MULTI_POLYGON = "MultiPolygon"
-	POINT_TYPE_MULTI_POINT   = "Point"
+	POINT_TYPE_POINT   = "Point"
 
 	OP_TYPE_GEO_INTERSECTS = "geoIntersects"
 	OP_TYPE_GEO_WITHIN     = "geoWithin"
@@ -76,11 +76,11 @@ func NewSpatialQueryCommand(opType string, pointType string, coordinates []float
 	case POINT_TYPE_MULTI_POLYGON:
 		geometryOp.Geometry.Type = POINT_TYPE_MULTI_POLYGON
 
-	case POINT_TYPE_MULTI_POINT:
+	case POINT_TYPE_POINT:
 		if opType == OP_TYPE_GEO_WITHIN {
 			return nil, fmt.Errorf("point type %v not supported", pointType)
 		}
-		geometryOp.Geometry.Type = POINT_TYPE_MULTI_POINT
+		geometryOp.Geometry.Type = POINT_TYPE_POINT
 	default:
 		return nil, fmt.Errorf("point type %v not supported", pointType)
 	}

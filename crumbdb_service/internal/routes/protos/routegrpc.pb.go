@@ -100,8 +100,8 @@ type Point struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// @gotags: bson:"type" validate:"required,fieldcontains=Point"
-	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty" bson:"type" validate:"required,fieldcontains=Point"`
+	// @gotags: bson:"type" validate:"required,contains=Point"
+	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty" bson:"type" validate:"required,contains=Point"`
 	// @gotags: bson:"coordinates" validate:"required"
 	Coordinates []float64 `protobuf:"fixed64,2,rep,packed,name=coordinates,proto3" json:"coordinates,omitempty" bson:"coordinates" validate:"required"`
 }

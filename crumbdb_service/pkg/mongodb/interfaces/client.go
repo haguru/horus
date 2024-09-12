@@ -38,7 +38,7 @@ type Client interface {
 
 	// SpaitalQuery queries database for data based on coordinates. Returns array of bson.D and error
 	// if error occurs a nil is returned as well as an error
-	SpaitalQuery(coordinates []float64, databasName string, collectionName string) ([]bson.D, error)
+	SpaitalQuery(pointType string, coordinates []float64, databaseName string, collectionName string) ([]bson.D, error)
 
 	// Update modifies a document given a ID. Returns a nil error when sucessful
 	Update(databaseName string, collectionName string, id string, items map[string]interface{}) error

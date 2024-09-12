@@ -17,7 +17,7 @@ message Crumb {
 }
 
 message Point {
-  // @gotags: bson:"type" validate:"required,fieldcontains=Point"
+  // @gotags: bson:"type" validate:"required,contains=Point"
   string type = 1;
   // @gotags: bson:"coordinates" validate:"required"
   repeated double coordinates = 2;

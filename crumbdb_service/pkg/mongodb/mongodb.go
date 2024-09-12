@@ -130,8 +130,8 @@ func (db MongoDB) InsertRecord(databaseName string, collectionName string, doc i
 
 // SpaitalQuery queries database for data based on coordinates. Returns array of bson.D and error
 // if error occurs a nil is returned as well as an error
-func (db MongoDB) SpaitalQuery(coordinates []float64, databaseName string, collectionName string) ([]bson.D, error) {
-	filter, err := NewSpatialQueryCommand(OP_TYPE_NEAR, POINT_TYPE_MULTI_POINT, coordinates, MAX_DISTANCE, MIN_DISTANCE)
+func (db MongoDB) SpaitalQuery(pointType string, coordinates []float64, databaseName string, collectionName string) ([]bson.D, error) {
+	filter, err := NewSpatialQueryCommand(OP_TYPE_NEAR, POINT_TYPE_POINT, coordinates, MAX_DISTANCE, MIN_DISTANCE)
 	if err != nil {
 		return nil, fmt.Errorf("failed to perforom spatial query: %v", err)
 	}

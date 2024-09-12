@@ -62,7 +62,7 @@ func (r *Route) GetCrumbs(point *pb.Point, stream pb.CrumbDB_GetCrumbsServer) er
 		return fmt.Errorf("validation error: %s", errors)
 	}
 
-	data, err := r.dbClient.SpaitalQuery(point.GetCoordinates(), r.dbConfig.Name, r.dbConfig.Collection)
+	data, err := r.dbClient.SpaitalQuery(point.Type, point.GetCoordinates(), r.dbConfig.Name, r.dbConfig.Collection)
 	if err != nil {
 		r.lc.Errorf("failed to run spatial query: %v", err)
 		return err

@@ -7,9 +7,11 @@ import (
 	"testing"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/v3/clients/logger"
+	"github.com/go-playground/validator/v10"
 	"github.com/haguru/horus/crumbdb/config"
 	pb "github.com/haguru/horus/crumbdb/internal/routes/protos"
 	grpcMock "github.com/haguru/horus/crumbdb/internal/routes/protos/mocks"
+	"github.com/haguru/horus/crumbdb/pkg/mongodb"
 	"github.com/haguru/horus/crumbdb/pkg/mongodb/interfaces/mocks"
 	"github.com/stretchr/testify/mock"
 	"go.mongodb.org/mongo-driver/bson"
@@ -71,7 +73,14 @@ func TestRoute_Create(t *testing.T) {
 			},
 			args: args{
 				ctx:   context.Background(),
-				crumb: &pb.Crumb{},
+				crumb: &pb.Crumb{
+					Location: &pb.Point{
+						Type: mongodb.POINT_TYPE_POINT,
+						Coordinates: []float64{-122.66025176499872, 45.692956992343845},
+					},
+					User: "test_user",
+					Message: "test_message",
+				},
 			},
 			insertRecordRtn: "",
 			errorRtn:        fmt.Errorf("failed"),
@@ -88,6 +97,7 @@ func TestRoute_Create(t *testing.T) {
 				dbConfig: tt.fields.dbCconfig,
 				dbClient: mockClient,
 				lc:       tt.fields.lc,
+				validator: validator.New(),
 			}
 
 			got, err := r.Create(tt.args.ctx, tt.args.crumb)
@@ -177,11 +187,12 @@ func TestRoute_GetCrumbs(t *testing.T) {
 			stream := grpcMock.NewServerStreamingServer[pb.Crumb](t)
 			stream.On("Send", mock.Anything).Return(tt.streamErrRtn).Maybe()
 			mockClient := mocks.NewClient(t)
-			mockClient.On("SpaitalQuery", mock.Anything, mock.Anything, mock.Anything).Return(tt.clientRtn, tt.clientErrorRtn)
+			mockClient.On("SpaitalQuery", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tt.clientRtn, tt.clientErrorRtn)
 			r := &Route{
 				dbConfig: tt.fields.dbCconfig,
 				dbClient: mockClient,
 				lc:       tt.fields.lc,
+				validator: validator.New(),
 			}
 			if err := r.GetCrumbs(tt.point, stream); (err != nil) != tt.wantErr {
 				t.Errorf("Route.GetCrumbs() error = %v, wantErr %v", err, tt.wantErr)
@@ -259,6 +270,7 @@ func TestRoute_Update(t *testing.T) {
 				dbConfig: tt.fields.dbCconfig,
 				dbClient: mockClient,
 				lc:       tt.fields.lc,
+				validator: validator.New(),
 			}
 			got, err := r.Update(tt.args.ctx, tt.args.crumb)
 			if (err != nil) != tt.wantErr {
@@ -338,6 +350,7 @@ func TestRoute_Delete(t *testing.T) {
 				dbConfig: tt.fields.dbCconfig,
 				dbClient: mockClient,
 				lc:       tt.fields.lc,
+				validator: validator.New(),
 			}
 			got, err := r.Delete(tt.args.ctx, tt.args.id)
 			if (err != nil) != tt.wantErr {
