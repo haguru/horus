@@ -133,10 +133,16 @@ func (db MongoDB) Update(databaseName string, collectionName string, filterParam
 		return err
 	}
 
-	_, err = collection.UpdateOne(context.TODO(), filter, updateItems)
+	res, err := collection.UpdateOne(context.TODO(), filter, updateItems)
 	if err != nil {
 		return err
 	}
+
+	db.lc.Debugf("update count: %v\n", res.MatchedCount)
+	if res.MatchedCount == 0 {
+		return fmt.Errorf("document not found")
+	}
+
 	return nil
 }
 
@@ -152,6 +158,10 @@ func (db MongoDB) Delete(databaseName string, collectionName string, filterParam
 	}
 
 	db.lc.Debugf("deleted count: %v\n", res.DeletedCount)
+	if res.DeletedCount == 0 {
+		return fmt.Errorf("document not found")
+	}
+
 	return nil
 }
 

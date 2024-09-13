@@ -22,7 +22,6 @@ type App struct {
 	Route          *routes.Route
 	GrpcServer     *grpc.Server
 	DbServerClient interfaces.Client
-	validator      *validator.Validate
 }
 
 func NewApp() (*App, error) {
@@ -30,6 +29,7 @@ func NewApp() (*App, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config locally: %v", err)
 	}
+
 	validate := validator.New()
 	err = validate.Struct(serviceConfig)
 	if err != nil {
@@ -62,7 +62,6 @@ func NewApp() (*App, error) {
 		ServiceConfig:  serviceConfig,
 		DbServerClient: db,
 		Route:          route,
-		validator:      validate,
 	}, nil
 }
 

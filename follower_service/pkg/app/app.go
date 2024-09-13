@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/haguru/horus/followerdb/config"
 	"github.com/haguru/horus/followerdb/internal/routes"
 	pb "github.com/haguru/horus/followerdb/internal/routes/protos"
@@ -30,6 +31,15 @@ func NewApp() (*App, error) {
 		return nil, fmt.Errorf("failed to read config locally: %v", err)
 	}
 
+	validate := validator.New()
+	err = validate.Struct(serviceConfig)
+	if err != nil {
+		// Validation failed, handle the error
+		errors := err.(validator.ValidationErrors)
+
+		return nil, fmt.Errorf("validation error: %s", errors)
+	}
+
 	lc := logger.NewClient(serviceConfig.Name, serviceConfig.LogLevel)
 
 	host := serviceConfig.Database.Host
@@ -40,7 +50,7 @@ func NewApp() (*App, error) {
 		return nil, err
 	}
 
-	route := routes.NewRoute(lc, &serviceConfig.Database, db)
+	route := routes.NewRoute(lc, &serviceConfig.Database, db, validate)
 	return &App{
 		LoggingClient:  lc,
 		AppCtx:         context.Background(),

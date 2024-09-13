@@ -203,9 +203,14 @@ func (db MongoDB) Update(databaseName string, collectionName string, id string, 
 		return err
 	}
 
-	_, err = collection.UpdateByID(context.TODO(), objectID, setcommand)
+	res, err := collection.UpdateByID(context.TODO(), objectID, setcommand)
 	if err != nil {
 		return err
+	}
+
+	db.lc.Debugf("update count: %v\n", res.MatchedCount)
+	if res.MatchedCount == 0 {
+		return fmt.Errorf("document not found")
 	}
 
 	return nil
@@ -226,6 +231,9 @@ func (db MongoDB) Delete(databaseName string, collectionName string, id string) 
 	}
 
 	db.lc.Debugf("deleted count: %v\n", res.DeletedCount)
+	if res.DeletedCount == 0 {
+		return fmt.Errorf("document not found")
+	}
 	return nil
 }
 

@@ -29,12 +29,12 @@ type Route struct {
 	pb.UnimplementedUserAcctDBServer
 }
 
-func NewRoute(lc logger.LoggingClient, config *config.Database, dbclient interfaces.DbClient) *Route {
+func NewRoute(lc logger.LoggingClient, config *config.Database, dbclient interfaces.DbClient, validator *validator.Validate) *Route {
 	return &Route{
 		dbConfig:  config,
 		dbClient:  dbclient,
 		lc:        lc,
-		validator: validator.New(),
+		validator: validator,
 	}
 }
 
