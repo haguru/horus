@@ -1,4 +1,4 @@
-name: useracctdb
+name: useracct_service
 port: 50053
 loglevel: DEBUG
 database:
