@@ -1,4 +1,4 @@
-name: follower
+name: follower_service
 port: 50055
 loglevel: DEBUG
 database:

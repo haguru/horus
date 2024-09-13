@@ -11,8 +11,8 @@ services:
       - 50051:50051
   crumbdb:
     image: mongodb/mongodb-community-server:latest
-    ports:
-      - 50052:27017
+    # ports:
+    #   - 50052:27017
   useracct_service:
     command: /useracct
     container_name: useracct_service
@@ -24,8 +24,8 @@ services:
       - 50053:50053
   useracctdb:
     image: mongodb/mongodb-community-server:latest
-    ports:
-      - 50054:27017
+    # ports:
+    #   - 50054:27017
   follower_service:
     command: /follower
     container_name: follower_service
@@ -35,7 +35,23 @@ services:
     image: haguru/follower:0.0.0-dev
     ports:
       - 50055:50055
+      - 52112:52112
   followerdb:
     image: mongodb/mongodb-community-server:latest
+    # ports:
+    #   - 50056:27017
+  prometheus:
+    image: prom/prometheus:latest
     ports:
-      - 50056:27017
+      - 9090:9090
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  grafana:
+    image: grafana/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=grafana
+    volumes:
+      - ./grafana:/etc/grafana/provisioning/datasources
+    ports:
+      - 3000:3000

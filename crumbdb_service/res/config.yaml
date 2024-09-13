@@ -1,4 +1,4 @@
-name: crumbdb
+name: crumbdb_service
 port: 50051
 loglevel: DEBUG
 database:

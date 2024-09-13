@@ -4,13 +4,16 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/haguru/horus/followerdb/config"
+	"github.com/haguru/horus/followerdb/pkg/interfaces"
+	appMetrics "github.com/haguru/horus/followerdb/pkg/prometheus"
+	pb "github.com/haguru/horus/followerdb/internal/routes/protos"
+
 	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson"
-
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
-	"github.com/haguru/horus/followerdb/config"
-	pb "github.com/haguru/horus/followerdb/internal/routes/protos"
-	"github.com/haguru/horus/followerdb/pkg/interfaces"
+	
+	
 )
 
 type Route struct {
@@ -18,21 +21,24 @@ type Route struct {
 	dbClient  interfaces.DbClient
 	lc        logger.LoggingClient
 	validator *validator.Validate
+	metrics   *appMetrics.Metrics
 	pb.UnimplementedFollowerDBServer
 }
 
 // TODO
-func NewRoute(lc logger.LoggingClient, config *config.Database, dbclient interfaces.DbClient, validator *validator.Validate) *Route {
+func NewRoute(lc logger.LoggingClient, config *config.Database, dbclient interfaces.DbClient, validator *validator.Validate, metrics *appMetrics.Metrics) *Route {
 	return &Route{
 		dbConfig:  config,
 		dbClient:  dbclient,
 		lc:        lc,
 		validator: validator,
+		metrics: metrics,
 	}
 }
 
 func (r *Route) AddFollow(ctx context.Context, follow *pb.Follow) (*pb.Id, error) {
 	r.lc.Debugf("received AddFollow request")
+	// r.metrics.RequestsCount.Inc()
 
 	// Validate the User struct
 	err := r.validator.Struct(follow)
@@ -53,6 +59,7 @@ func (r *Route) AddFollow(ctx context.Context, follow *pb.Follow) (*pb.Id, error
 
 func (r *Route) GetFollowers(id *pb.Id, stream pb.FollowerDB_GetFollowersServer) error {
 	r.lc.Debugf("received Getfollowers request")
+	// r.metrics.RequestsCount.Inc()
 
 	filter := map[string]interface{}{"userId": id.GetValue()}
 	items, err := r.dbClient.GetAll(r.dbConfig.Name, r.dbConfig.Collection, filter)
@@ -87,6 +94,7 @@ func (r *Route) GetFollowers(id *pb.Id, stream pb.FollowerDB_GetFollowersServer)
 
 func (r *Route) Unfollow(ctx context.Context, follow *pb.Follow) (*pb.Status, error) {
 	r.lc.Debugf("received Unfollow request")
+	// r.metrics.RequestsCount.Inc()
 
 	// Validate the User struct
 	err := r.validator.Struct(follow)
