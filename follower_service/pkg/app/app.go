@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/http"
 
 	"github.com/haguru/horus/followerdb/config"
 	"github.com/haguru/horus/followerdb/internal/routes"
@@ -11,16 +12,13 @@ import (
 	"github.com/haguru/horus/followerdb/pkg/interfaces"
 	"github.com/haguru/horus/followerdb/pkg/mongodb"
 	appMetrics "github.com/haguru/horus/followerdb/pkg/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	"github.com/go-playground/validator/v10"
 	grpcprom "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/auth"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
-	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
-	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 )
 
@@ -87,30 +85,16 @@ func (app *App) RunServer() error {
 		return fmt.Errorf("failed to listen: %v", err)
 	}
 
-	// TODO move to metrics
-	exemplarFromContext := func(ctx context.Context) prometheus.Labels {
-		if span := trace.SpanContextFromContext(ctx); span.IsSampled() {
-			return prometheus.Labels{"traceID": span.TraceID().String()}
-		}
-		return nil
-	}
-
-	// TODO move to metrics
 	// Create a gRPC Server with gRPC interceptor.
 	app.GrpcServer = grpc.NewServer(
-
+		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.ChainUnaryInterceptor(
-			otelgrpc.UnaryServerInterceptor(),
-			grpc.UnaryServerInterceptor(app.metrics.GrpcMetrics.UnaryServerInterceptor(grpcprom.WithExemplarFromContext(exemplarFromContext))),
+			grpc.UnaryServerInterceptor(app.metrics.GrpcMetrics.UnaryServerInterceptor(grpcprom.WithExemplarFromContext(appMetrics.ExemplarFromContext))),
 			logging.UnaryServerInterceptor(appMetrics.InterceptorLogger(app.LoggingClient), logging.WithFieldsFromContext(appMetrics.LogTraceID)),
-			selector.UnaryServerInterceptor(auth.UnaryServerInterceptor(appMetrics.Auth), selector.MatchFunc(appMetrics.Health)),
 		),
 		grpc.ChainStreamInterceptor(
-			otelgrpc.StreamServerInterceptor(),
-			grpc.StreamServerInterceptor(app.metrics.GrpcMetrics.StreamServerInterceptor(grpcprom.WithExemplarFromContext(exemplarFromContext))),
+			grpc.StreamServerInterceptor(app.metrics.GrpcMetrics.StreamServerInterceptor(grpcprom.WithExemplarFromContext(appMetrics.ExemplarFromContext))),
 			logging.StreamServerInterceptor(appMetrics.InterceptorLogger(app.LoggingClient), logging.WithFieldsFromContext(appMetrics.LogTraceID)),
-			selector.StreamServerInterceptor(auth.StreamServerInterceptor(appMetrics.Auth), selector.MatchFunc(appMetrics.Health)),
-			// recovery.StreamServerInterceptor(recovery.WithRecoveryHandler(grpcPanicRecoveryHandler)),
 		),
 	)
 
@@ -118,13 +102,19 @@ func (app *App) RunServer() error {
 	pb.RegisterFollowerDBServer(app.GrpcServer, app.Route)
 	app.metrics.GrpcMetrics.InitializeMetrics(app.GrpcServer)
 
-	// TODO move to metrics
-	go func(app *App) {
-		app.LoggingClient.Debugf("server(prometheus) listening at %v", app.metrics.MetricServer.Addr)
-		if err := app.metrics.MetricServer.ListenAndServe(); err != nil {
+	go func() {
+		metricsServer := &http.Server{Addr: fmt.Sprintf(":%d", promPort)}
+		muxHandler := http.NewServeMux()
+		muxHandler.Handle("/metrics", promhttp.HandlerFor(app.metrics.Registry, promhttp.HandlerOpts{
+			EnableOpenMetrics: true,
+		}))
+
+		metricsServer.Handler =  muxHandler
+		app.LoggingClient.Debugf("server(prometheus) listening at %v", metricsServer.Addr)
+		if err := metricsServer.ListenAndServe(); err != nil {
 			app.LoggingClient.Error("failed to start prometheus client")
 		}
-	}(app)
+	}()
 
 	app.LoggingClient.Debugf("server(GRPC) listening at %v", lis.Addr())
 	err = app.GrpcServer.Serve(lis)

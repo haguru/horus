@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/haguru/horus/followerdb/config"
+<<<<<<< HEAD
 	"github.com/haguru/horus/followerdb/pkg/interfaces"
 	appMetrics "github.com/haguru/horus/followerdb/pkg/prometheus"
 	pb "github.com/haguru/horus/followerdb/internal/routes/protos"
@@ -14,6 +15,15 @@ import (
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	
 	
+=======
+	pb "github.com/haguru/horus/followerdb/internal/routes/protos"
+	"github.com/haguru/horus/followerdb/pkg/interfaces"
+	appMetrics "github.com/haguru/horus/followerdb/pkg/prometheus"
+
+	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
+	"github.com/go-playground/validator/v10"
+	"go.mongodb.org/mongo-driver/bson"
+>>>>>>> 5d11d8811ccd7f1f01c900e91faea8139cd8b878
 )
 
 type Route struct {
@@ -32,7 +42,11 @@ func NewRoute(lc logger.LoggingClient, config *config.Database, dbclient interfa
 		dbClient:  dbclient,
 		lc:        lc,
 		validator: validator,
+<<<<<<< HEAD
 		metrics: metrics,
+=======
+		metrics:   metrics,
+>>>>>>> 5d11d8811ccd7f1f01c900e91faea8139cd8b878
 	}
 }
 

@@ -2,7 +2,10 @@ package prometheus
 
 import (
 	"context"
+<<<<<<< HEAD
 	"fmt"
+=======
+>>>>>>> 5d11d8811ccd7f1f01c900e91faea8139cd8b878
 	"net/http"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
@@ -14,7 +17,10 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/auth"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/prometheus/client_golang/prometheus"
+<<<<<<< HEAD
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+=======
+>>>>>>> 5d11d8811ccd7f1f01c900e91faea8139cd8b878
 	"google.golang.org/grpc/codes"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/status"
@@ -25,20 +31,35 @@ const (
 	ERROR_COUNTER        = "error_counter"
 	HELP_REQUEST_COUNTER = "Number of requests received"
 	HELP_ERROR_COUNTER   = "Number of errors that occured"
+<<<<<<< HEAD
 	METRICSPORT             = 52112
 	
 )
 
 var(
+=======
+	METRICSPORT          = 52112
+)
+
+var (
+>>>>>>> 5d11d8811ccd7f1f01c900e91faea8139cd8b878
 	BUCKETS = []float64{0.001, 0.01, 0.1, 0.3, 0.6, 1, 3, 6, 9, 20, 30, 60, 90, 120}
 )
 
 type Metrics struct {
+<<<<<<< HEAD
 	Registry      *prometheus.Registry
 	// RequestsCount prometheus.Counter
 	// ErrorCount    prometheus.Counter
 	GrpcMetrics   *grpc_prometheus.ServerMetrics
 	MetricServer  *http.Server
+=======
+	Registry *prometheus.Registry
+	// RequestsCount prometheus.Counter
+	// ErrorCount    prometheus.Counter
+	GrpcMetrics  *grpc_prometheus.ServerMetrics
+	MetricServer *http.Server
+>>>>>>> 5d11d8811ccd7f1f01c900e91faea8139cd8b878
 }
 
 func NewMetrics(config *config.ServiceConfig) *Metrics {
@@ -62,8 +83,13 @@ func NewMetrics(config *config.ServiceConfig) *Metrics {
 		GrpcMetrics: serverMetrics,
 	}
 	metrics.Registry.MustRegister(metrics.GrpcMetrics)
+<<<<<<< HEAD
 	prometheusHandler := promhttp.HandlerFor(metrics.Registry, promhttp.HandlerOpts{})
 	metrics.MetricServer = &http.Server{Handler: prometheusHandler, Addr: fmt.Sprintf("0.0.0.0:%d", METRICSPORT)}
+=======
+	// prometheusHandler := promhttp.HandlerFor(metrics.Registry, promhttp.HandlerOpts{})
+	// metrics.MetricServer = &http.Server{Handler: prometheusHandler, Addr: fmt.Sprintf("0.0.0.0:%d", METRICSPORT)}
+>>>>>>> 5d11d8811ccd7f1f01c900e91faea8139cd8b878
 
 	return metrics
 }
@@ -109,8 +135,17 @@ func LogTraceID(ctx context.Context) logging.Fields {
 	return nil
 }
 
+<<<<<<< HEAD
 // func Recovery(p any) (err error) {
 // 	panicsTotal.Inc()
 // 	level.Error(rpcLogger).Log("msg", "recovered from panic", "panic", p, "stack", debug.Stack())
 // 	return status.Errorf(codes.Internal, "%s", p)
 // }
+=======
+func ExemplarFromContext(ctx context.Context) prometheus.Labels {
+	if span := trace.SpanContextFromContext(ctx); span.IsSampled() {
+		return prometheus.Labels{"traceID": span.TraceID().String()}
+	}
+	return nil
+}
+>>>>>>> 5d11d8811ccd7f1f01c900e91faea8139cd8b878

@@ -4,8 +4,13 @@ go 1.22.6
 
 require (
 	github.com/edgexfoundry/go-mod-core-contracts v0.1.149
+	github.com/go-kit/log v0.2.1
 	github.com/go-playground/validator/v10 v10.3.0
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.0.1
+<<<<<<< HEAD
+=======
+	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0
+>>>>>>> 5d11d8811ccd7f1f01c900e91faea8139cd8b878
 	github.com/stretchr/testify v1.9.0
 	go.mongodb.org/mongo-driver v1.16.1
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.55.0
@@ -20,7 +25,10 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+<<<<<<< HEAD
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0 // indirect
+=======
+>>>>>>> 5d11d8811ccd7f1f01c900e91faea8139cd8b878
 	github.com/kr/text v0.2.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
