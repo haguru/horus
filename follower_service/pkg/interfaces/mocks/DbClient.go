@@ -165,6 +165,24 @@ func (_m *DbClient) GetAll(databaseName string, collectionName string, filterPar
 	return r0, r1
 }
 
+// Ping provides a mock function with given fields:
+func (_m *DbClient) Ping() error {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Ping")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Update provides a mock function with given fields: databaseName, collectionName, filterParams, updateType, items
 func (_m *DbClient) Update(databaseName string, collectionName string, filterParams map[string]interface{}, updateType string, items map[string]interface{}) error {
 	ret := _m.Called(databaseName, collectionName, filterParams, updateType, items)

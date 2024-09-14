@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	// "time"
 
 	"github.com/haguru/horus/followerdb/config"
 	"github.com/haguru/horus/followerdb/internal/routes"
@@ -12,18 +13,21 @@ import (
 	"github.com/haguru/horus/followerdb/pkg/interfaces"
 	"github.com/haguru/horus/followerdb/pkg/mongodb"
 	appMetrics "github.com/haguru/horus/followerdb/pkg/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	"github.com/go-playground/validator/v10"
-	grpcprom "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
+	// "google.golang.org/grpc/health"
+	// "google.golang.org/grpc/health/grpc_health_v1"
+	grpcprom "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
+	// healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 const (
-	promPort = 52112
+	METRICS_ENDPOINT = "/metrics"
 )
 
 type App struct {
@@ -66,9 +70,6 @@ func NewApp() (*App, error) {
 	// initiate routes
 	route := routes.NewRoute(lc, &serviceConfig.Database, db, validate, metrics)
 
-	// prometheus example
-	// http.Handle("/metrics", prometheusHandler)
-
 	return &App{
 		LoggingClient:  lc,
 		AppCtx:         context.Background(),
@@ -98,19 +99,47 @@ func (app *App) RunServer() error {
 		),
 	)
 
-	// app.GrpcServer = grpc.NewServer()
 	pb.RegisterFollowerDBServer(app.GrpcServer, app.Route)
 	app.metrics.GrpcMetrics.InitializeMetrics(app.GrpcServer)
 
+	// // health service
+	// healthService := health.NewServer()
+	// // Register the health service with the gRPC server
+	// grpc_health_v1.RegisterHealthServer(app.GrpcServer, healthService)
+	// // Set the service health status
+	// healthService.SetServingStatus(app.ServiceConfig.Name, grpc_health_v1.HealthCheckResponse_SERVING)
+
+	// ticker := time.NewTicker(5 * time.Second)
+
+	// go func(app *App) {
+	// 	for {
+	// 		select {
+	// 		// case <-done:
+	// 		//     return
+	// 		case <-ticker.C:
+	// 			err := app.DbServerClient.Ping()
+	// 			if err != nil {
+	// 				// app.LoggingClient.Debug("updating health status: NOT_SERVING",)
+	// 				healthService.SetServingStatus(app.ServiceConfig.Name, healthpb.HealthCheckResponse_NOT_SERVING)
+	// 			}else{
+	// 				// app.LoggingClient.Debug("updating health status: SERVING")
+	// 				healthService.SetServingStatus(app.ServiceConfig.Name,healthpb.HealthCheckResponse_SERVING)
+	// 			}
+
+				
+	// 		}
+	// 	}
+	// }(app)
+
 	go func() {
-		metricsServer := &http.Server{Addr: fmt.Sprintf(":%d", promPort)}
+		metricsServer := &http.Server{Addr: fmt.Sprintf(":%d", app.ServiceConfig.Metrics.Port)}
 		muxHandler := http.NewServeMux()
-		muxHandler.Handle("/metrics", promhttp.HandlerFor(app.metrics.Registry, promhttp.HandlerOpts{
+		muxHandler.Handle(METRICS_ENDPOINT, promhttp.HandlerFor(app.metrics.Registry, promhttp.HandlerOpts{
 			EnableOpenMetrics: true,
 		}))
 
-		metricsServer.Handler =  muxHandler
-		app.LoggingClient.Debugf("server(prometheus) listening at %v", metricsServer.Addr)
+		metricsServer.Handler = muxHandler
+		app.LoggingClient.Debugf("server(prometheus) listening at %v", app.ServiceConfig.Metrics.Port)
 		if err := metricsServer.ListenAndServe(); err != nil {
 			app.LoggingClient.Error("failed to start prometheus client")
 		}

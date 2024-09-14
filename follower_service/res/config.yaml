@@ -9,4 +9,6 @@ database:
   options:
     setstrict: true
     setdeprecationerrors: true
+metrics:
+  port: 52112
     
