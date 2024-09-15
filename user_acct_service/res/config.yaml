@@ -5,8 +5,10 @@ database:
   host: useracctdb 
   port: 27017 
   name: horus
+  timeout: 5s
   collection: users
   options:
     setstrict: true
     setdeprecationerrors: true
-    
+metrics:
+  port: 52112

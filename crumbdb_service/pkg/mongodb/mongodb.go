@@ -3,6 +3,7 @@ package mongodb
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/haguru/horus/crumbdb/pkg/mongodb/interfaces"
 	"go.mongodb.org/mongo-driver/bson"
@@ -10,7 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"github.com/edgexfoundry/go-mod-core-contracts/v3/clients/logger"
+	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 )
 
 const (
@@ -27,30 +28,31 @@ type MongoDB struct {
 	Host       string
 	Port       int
 	ServerOpts *options.ServerAPIOptions
+	timeout    time.Duration
 	Client     *mongo.Client
 	lc         logger.LoggingClient
 }
 
 // NewMongoDB returns a interface for db client and error if it occurs
-func NewMongoDB(host string, port int, lc logger.LoggingClient, opts *options.ServerAPIOptions) (interfaces.Client, error) {
+func NewMongoDB(host string, port int, lc logger.LoggingClient, timeout time.Duration, opts *options.ServerAPIOptions) (interfaces.Client, error) {
 	db := &MongoDB{
 		Host:       host,
 		Port:       port,
 		lc:         lc,
 		ServerOpts: opts,
+		timeout:    timeout,
 	}
-	client, err := db.Connect()
+	err := db.Connect()
 	if err != nil {
 		return nil, err
 	}
-	db.Client = client
 
 	return db, nil
 }
 
 // Connect returns a mongodb client and error.
 // If an error occurs mongodb client will be nil
-func (db MongoDB) Connect() (*mongo.Client, error) {
+func (db *MongoDB) Connect() error {
 	// Use the SetServerAPIOptions() method to set the Stable API version to 1
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1).SetStrict(true).SetDeprecationErrors(true)
 	if db.ServerOpts != nil {
@@ -59,26 +61,31 @@ func (db MongoDB) Connect() (*mongo.Client, error) {
 	uri := fmt.Sprintf("mongodb://%v:%v/?maxPoolSize=%v&w=majority", db.Host, db.Port, MAXPOOLSIZE)
 	opts := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
 
-	// Creat new client
+	// Create new client
+	db.lc.Debugf("connecting to database: %v", uri)
 	var err error
-	client, err := mongo.Connect(context.TODO(), opts)
+	db.Client, err = mongo.Connect(context.TODO(), opts)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	err = db.Ping(client)
+	db.lc.Debugf("pinging database: %v", uri)
+	err = db.Ping()
 	if err != nil {
-		return nil, fmt.Errorf("failed to successfully ping mongodb server: %v", err)
+		return fmt.Errorf("failed to successfully ping mongodb server: %v", err)
 	}
 
-	return client, nil
+	db.lc.Debugf("scucessfully connected to database: %v", uri)
+	return nil
 }
 
 // Ping returns error if mongodb is unreachable
-func (db MongoDB) Ping(client *mongo.Client) error {
+func (db *MongoDB) Ping() error {
 	// Send a ping to confirm a successful connection
 	var result bson.M
-	if err := client.Database("admin").RunCommand(context.TODO(), bson.D{{Key: "ping", Value: 1}}).Decode(&result); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), db.timeout)
+	defer cancel()
+	if err := db.Client.Database("admin").RunCommand(ctx, bson.D{{Key: "ping", Value: 1}}).Decode(&result); err != nil {
 		return err
 	}
 
@@ -86,7 +93,7 @@ func (db MongoDB) Ping(client *mongo.Client) error {
 }
 
 // Disconnect returns error if client is unable to disconnect from mongodb
-func (db MongoDB) Disconnect(context context.Context) error {
+func (db *MongoDB) Disconnect(context context.Context) error {
 	if err := db.Client.Disconnect(context); err != nil {
 		return err
 	}
@@ -96,7 +103,7 @@ func (db MongoDB) Disconnect(context context.Context) error {
 
 // CreateSpatialIndex returns error if client is unable to create a spatial index
 // this is needed to search database by (longitude, latitude) coordinates
-func (db MongoDB) CreateSpatialIndex(databaseName string, collectionName string, spatialType string) error {
+func (db *MongoDB) CreateSpatialIndex(databaseName string, collectionName string, spatialType string) error {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 	indexModel := mongo.IndexModel{
 		Keys: bson.D{{Key: SPATIAL_INDEX_KEY, Value: spatialType}},
@@ -112,7 +119,7 @@ func (db MongoDB) CreateSpatialIndex(databaseName string, collectionName string,
 
 // InsertRecord returns ID, as string, and error.
 // if error occurs an empty string is returned along with the error
-func (db MongoDB) InsertRecord(databaseName string, collectionName string, doc interface{}) (string, error) {
+func (db *MongoDB) InsertRecord(databaseName string, collectionName string, doc interface{}) (string, error) {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 
 	r, err := collection.InsertOne(context.TODO(), doc)
@@ -130,7 +137,7 @@ func (db MongoDB) InsertRecord(databaseName string, collectionName string, doc i
 
 // SpaitalQuery queries database for data based on coordinates. Returns array of bson.D and error
 // if error occurs a nil is returned as well as an error
-func (db MongoDB) SpaitalQuery(pointType string, coordinates []float64, databaseName string, collectionName string) ([]bson.D, error) {
+func (db *MongoDB) SpaitalQuery(pointType string, coordinates []float64, databaseName string, collectionName string) ([]bson.D, error) {
 	filter, err := NewSpatialQueryCommand(OP_TYPE_NEAR, POINT_TYPE_POINT, coordinates, MAX_DISTANCE, MIN_DISTANCE)
 	if err != nil {
 		return nil, fmt.Errorf("failed to perforom spatial query: %v", err)
@@ -154,7 +161,7 @@ func (db MongoDB) SpaitalQuery(pointType string, coordinates []float64, database
 
 // FindAll retrieves all documents in the database. Returns an array of bson.D and error.
 // if an error occurs then a nil is return and an error
-func (db MongoDB) FindAll(databaseName string, collectionName string) ([]bson.D, error) {
+func (db *MongoDB) FindAll(databaseName string, collectionName string) ([]bson.D, error) {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 
 	cur, err := collection.Find(context.TODO(), bson.D{{}})
@@ -176,7 +183,7 @@ func (db MongoDB) FindAll(databaseName string, collectionName string) ([]bson.D,
 }
 
 // FindOne retrieves a document by ID. Returns a bson.D
-func (db MongoDB) FindOne(databaseName string, collectionName string, id string) (*bson.D, error) {
+func (db *MongoDB) FindOne(databaseName string, collectionName string, id string) (*bson.D, error) {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 
 	// get bson id filter
@@ -193,7 +200,7 @@ func (db MongoDB) FindOne(databaseName string, collectionName string, id string)
 }
 
 // Update modifies a document given a ID. Returns a nil error when sucessful
-func (db MongoDB) Update(databaseName string, collectionName string, id string, items map[string]interface{}) error {
+func (db *MongoDB) Update(databaseName string, collectionName string, id string, items map[string]interface{}) error {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 
 	setcommand := db.createUpdateSetCommand(items)
@@ -217,7 +224,7 @@ func (db MongoDB) Update(databaseName string, collectionName string, id string, 
 }
 
 // Delete removes a document from the database. Returns nil error if successful
-func (db MongoDB) Delete(databaseName string, collectionName string, id string) error {
+func (db *MongoDB) Delete(databaseName string, collectionName string, id string) error {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 
 	objectID, err := primitive.ObjectIDFromHex(id)
@@ -237,7 +244,7 @@ func (db MongoDB) Delete(databaseName string, collectionName string, id string) 
 	return nil
 }
 
-func (db MongoDB) filter(searchParams map[string]interface{}) bson.M {
+func (db *MongoDB) filter(searchParams map[string]interface{}) bson.M {
 	bsonMap := bson.M{}
 	for key, value := range searchParams {
 		bsonMap[key] = value
@@ -245,7 +252,7 @@ func (db MongoDB) filter(searchParams map[string]interface{}) bson.M {
 	return bsonMap
 }
 
-func (db MongoDB) createUpdateSetCommand(items map[string]interface{}) bson.D {
+func (db *MongoDB) createUpdateSetCommand(items map[string]interface{}) bson.D {
 	bsonElements := bson.D{}
 	for key, value := range items {
 		bsonElements = append(bsonElements, bson.E{Key: key, Value: value})

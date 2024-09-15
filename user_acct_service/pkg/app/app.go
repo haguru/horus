@@ -4,16 +4,28 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/http"
+	"time"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/haguru/horus/useracctdb/config"
 	"github.com/haguru/horus/useracctdb/internal/routes"
 	pb "github.com/haguru/horus/useracctdb/internal/routes/protos"
+	"github.com/haguru/horus/useracctdb/pkg/healthcheck"
 	"github.com/haguru/horus/useracctdb/pkg/interfaces"
 	"github.com/haguru/horus/useracctdb/pkg/mongodb"
+	appMetrics "github.com/haguru/horus/useracctdb/pkg/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
+	"github.com/go-playground/validator/v10"
+	grpcprom "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
+)
+
+const (
+	METRICS_ENDPOINT = "/metrics"
 )
 
 type App struct {
@@ -23,6 +35,7 @@ type App struct {
 	Route          *routes.Route
 	GrpcServer     *grpc.Server
 	DbServerClient interfaces.DbClient
+	metrics        *appMetrics.Metrics
 }
 
 func NewApp() (*App, error) {
@@ -44,11 +57,19 @@ func NewApp() (*App, error) {
 
 	host := serviceConfig.Database.Host
 	port := serviceConfig.Database.Port
-	db, err := mongodb.NewMongoDB(host, port, lc, nil)
+
+	timeout, err := time.ParseDuration(serviceConfig.Database.Timeout)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse timeout: %v", err)
+	}
+
+	db, err := mongodb.NewMongoDB(host, port, lc, timeout, nil)
 	if err != nil {
 		lc.Errorf("failed to connect, %v\n", err)
 		return nil, err
 	}
+
+	metrics := appMetrics.NewMetrics(serviceConfig)
 
 	route := routes.NewRoute(lc, &serviceConfig.Database, db, validate)
 	return &App{
@@ -56,6 +77,7 @@ func NewApp() (*App, error) {
 		AppCtx:         context.Background(),
 		ServiceConfig:  serviceConfig,
 		DbServerClient: db,
+		metrics:        metrics,
 		Route:          route,
 	}, nil
 }
@@ -65,9 +87,48 @@ func (app *App) RunServer() error {
 	if err != nil {
 		return fmt.Errorf("failed to listen: %v", err)
 	}
-	app.GrpcServer = grpc.NewServer()
+
+	// Create a gRPC Server with gRPC interceptor.
+	app.GrpcServer = grpc.NewServer(
+		grpc.StatsHandler(otelgrpc.NewServerHandler()),
+		grpc.ChainUnaryInterceptor(
+			grpc.UnaryServerInterceptor(app.metrics.GrpcMetrics.UnaryServerInterceptor(grpcprom.WithExemplarFromContext(appMetrics.ExemplarFromContext))),
+			logging.UnaryServerInterceptor(appMetrics.InterceptorLogger(app.LoggingClient), logging.WithFieldsFromContext(appMetrics.LogTraceID)),
+		),
+		grpc.ChainStreamInterceptor(
+			grpc.StreamServerInterceptor(app.metrics.GrpcMetrics.StreamServerInterceptor(grpcprom.WithExemplarFromContext(appMetrics.ExemplarFromContext))),
+			logging.StreamServerInterceptor(appMetrics.InterceptorLogger(app.LoggingClient), logging.WithFieldsFromContext(appMetrics.LogTraceID)),
+		),
+	)
+
 	pb.RegisterUserAcctDBServer(app.GrpcServer, app.Route)
-	app.LoggingClient.Debugf("server listening at %v", lis.Addr())
+	app.metrics.GrpcMetrics.InitializeMetrics(app.GrpcServer)
+
+	app.LoggingClient.Debug("creating healthcheck service")
+	health, err := healthcheck.NewHealthCheck(app.ServiceConfig, app.metrics)
+	if err != nil {
+		return fmt.Errorf("failed to create healthcheck service:%v", err)
+	}
+
+	app.LoggingClient.Debug("initializing healthcheck service")
+	health.Initialize(app.GrpcServer)
+	app.LoggingClient.Debug("starting healthcheck service")
+	go health.StartHealthCheckService(app.DbServerClient)
+
+	go func() {
+		metricsServer := &http.Server{Addr: fmt.Sprintf(":%d", app.ServiceConfig.Metrics.Port)}
+		muxHandler := http.NewServeMux()
+		muxHandler.Handle(METRICS_ENDPOINT, promhttp.HandlerFor(app.metrics.Registry, promhttp.HandlerOpts{
+			EnableOpenMetrics: true,
+		}))
+
+		metricsServer.Handler = muxHandler
+		app.LoggingClient.Debugf("server(prometheus) listening at %v", app.ServiceConfig.Metrics.Port)
+		if err := metricsServer.ListenAndServe(); err != nil {
+			app.LoggingClient.Error("failed to start prometheus client")
+		}
+	}()
+
 	err = app.GrpcServer.Serve(lis)
 	if err != nil {
 		return fmt.Errorf("failed to serve: %v", err)

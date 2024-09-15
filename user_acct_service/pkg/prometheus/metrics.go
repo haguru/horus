@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
-	"github.com/haguru/horus/followerdb/config"
+	"github.com/haguru/horus/useracctdb/config"
 	"go.opentelemetry.io/otel/trace"
 
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"

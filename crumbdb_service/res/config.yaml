@@ -5,8 +5,11 @@ database:
   host: crumbdb 
   port: 27017 
   name: horus
+  timeout: 5s
   collection: crumbs
   options:
     setstrict: true
     setdeprecationerrors: true
+metrics:
+  port: 52112
     

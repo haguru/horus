@@ -7,7 +7,6 @@ import (
 	"github.com/haguru/horus/followerdb/config"
 	pb "github.com/haguru/horus/followerdb/internal/routes/protos"
 	"github.com/haguru/horus/followerdb/pkg/interfaces"
-	appMetrics "github.com/haguru/horus/followerdb/pkg/prometheus"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	"github.com/go-playground/validator/v10"
@@ -19,18 +18,16 @@ type Route struct {
 	dbClient  interfaces.DbClient
 	lc        logger.LoggingClient
 	validator *validator.Validate
-	metrics   *appMetrics.Metrics
 	pb.UnimplementedFollowerDBServer
 }
 
 // TODO
-func NewRoute(lc logger.LoggingClient, config *config.Database, dbclient interfaces.DbClient, validator *validator.Validate, metrics *appMetrics.Metrics) *Route {
+func NewRoute(lc logger.LoggingClient, config *config.Database, dbclient interfaces.DbClient, validator *validator.Validate) *Route {
 	return &Route{
 		dbConfig:  config,
 		dbClient:  dbclient,
 		lc:        lc,
 		validator: validator,
-		metrics:   metrics,
 	}
 }
 
