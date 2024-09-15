@@ -2,7 +2,6 @@ package prometheus
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	"github.com/haguru/horus/followerdb/config"
@@ -18,29 +17,34 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var (
-	BUCKETS = []float64{0.001, 0.01, 0.1, 0.3, 0.6, 1, 3, 6, 9, 20, 30, 60, 90, 120}
-)
+var BUCKETS = []float64{0.001, 0.01, 0.1, 0.3, 0.6, 1, 3, 6, 9, 20, 30, 60, 90, 120}
 
 type Metrics struct {
-	Registry *prometheus.Registry
+	Registry     *prometheus.Registry
+	HealthMetric prometheus.Gauge
 	GrpcMetrics  *grpc_prometheus.ServerMetrics
-	MetricServer *http.Server
 }
 
 func NewMetrics(config *config.ServiceConfig) *Metrics {
+	healthMetric := prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Namespace: config.Name,
+			Name:      "health",
+			Help:      "Checks the health of the connection to DB",
+		})
 	serverMetrics := grpc_prometheus.NewServerMetrics(
 		grpc_prometheus.WithServerHandlingTimeHistogram(
 			grpc_prometheus.WithHistogramBuckets(BUCKETS),
 		),
 	)
-	
+
 	metrics := &Metrics{
-		Registry: prometheus.NewRegistry(),
-		GrpcMetrics: serverMetrics,
+		Registry:     prometheus.NewRegistry(),
+		HealthMetric: healthMetric,
+		GrpcMetrics:  serverMetrics,
 	}
 
-	metrics.Registry.MustRegister(metrics.GrpcMetrics)
+	metrics.Registry.MustRegister(metrics.GrpcMetrics, healthMetric)
 
 	return metrics
 }

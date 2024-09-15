@@ -3,6 +3,7 @@ package mongodb
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	"github.com/haguru/horus/followerdb/pkg/interfaces"
@@ -18,6 +19,7 @@ type MongoDB struct {
 	Port       int
 	ServerOpts *options.ServerAPIOptions
 	Client     *mongo.Client
+	timeout    time.Duration
 	lc         logger.LoggingClient
 }
 
@@ -27,12 +29,13 @@ const (
 )
 
 // NewMongoDB returns a interface for db client and error if it occurs
-func NewMongoDB(host string, port int, lc logger.LoggingClient, opts *options.ServerAPIOptions) (interfaces.DbClient, error) {
+func NewMongoDB(host string, port int, lc logger.LoggingClient, timeout time.Duration, opts *options.ServerAPIOptions) (interfaces.DbClient, error) {
 	db := &MongoDB{
 		Host:       host,
 		Port:       port,
 		lc:         lc,
 		ServerOpts: opts,
+		timeout: timeout,
 	}
 	err := db.Connect()
 	if err != nil {
@@ -77,9 +80,9 @@ func (db *MongoDB) Connect() error {
 func (db *MongoDB) Ping() error {
 	// Send a ping to confirm a successful connection
 	var result bson.M
-	// ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
-	// defer cancel()
-	if err := db.Client.Database("admin").RunCommand(context.TODO(), bson.D{{Key: "ping", Value: 1}}).Decode(&result); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), db.timeout)
+	defer cancel()
+	if err := db.Client.Database("admin").RunCommand(ctx, bson.D{{Key: "ping", Value: 1}}).Decode(&result); err != nil {
 		return err
 	}
 
