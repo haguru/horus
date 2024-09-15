@@ -4,13 +4,12 @@ import (
 	"context"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Client interface {
 	// Connect returns a mongodb client and error.
 	// If an error occurs mongodb client will be nil
-	Connect() (*mongo.Client, error)
+	Connect() error
 
 	// CreateSpatialIndex returns error if client is unable to create a spatial index
 	// this is needed to search database by (longitude, latitude) coordinates
@@ -34,7 +33,7 @@ type Client interface {
 	InsertRecord(databaseName string, collectionName string, doc interface{}) (string, error)
 
 	// Ping returns error if mongodb is unreachable
-	Ping(client *mongo.Client) error
+	Ping() error
 
 	// SpaitalQuery queries database for data based on coordinates. Returns array of bson.D and error
 	// if error occurs a nil is returned as well as an error

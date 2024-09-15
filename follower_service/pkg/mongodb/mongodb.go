@@ -35,7 +35,7 @@ func NewMongoDB(host string, port int, lc logger.LoggingClient, timeout time.Dur
 		Port:       port,
 		lc:         lc,
 		ServerOpts: opts,
-		timeout: timeout,
+		timeout:    timeout,
 	}
 	err := db.Connect()
 	if err != nil {
@@ -59,12 +59,10 @@ func (db *MongoDB) Connect() error {
 	// Creat new client
 	db.lc.Debugf("connecting to database: %v", uri)
 	var err error
-	client, err := mongo.Connect(context.TODO(), opts)
+	db.Client, err = mongo.Connect(context.TODO(), opts)
 	if err != nil {
 		return err
 	}
-
-	db.Client = client
 
 	db.lc.Debugf("pinging database: %v", uri)
 	err = db.Ping()

@@ -26,6 +26,7 @@ import (
 
 const (
 	METRICS_ENDPOINT = "/metrics"
+	READ_TIMEOUT     = 500 * time.Millisecond
 )
 
 type App struct {
@@ -72,7 +73,7 @@ func NewApp() (*App, error) {
 	metrics := appMetrics.NewMetrics(serviceConfig)
 
 	// initiate routes
-	route := routes.NewRoute(lc, &serviceConfig.Database, db, validate, metrics)
+	route := routes.NewRoute(lc, &serviceConfig.Database, db, validate)
 
 	return &App{
 		LoggingClient:  lc,
@@ -106,8 +107,12 @@ func (app *App) RunServer() error {
 	pb.RegisterFollowerDBServer(app.GrpcServer, app.Route)
 	app.metrics.GrpcMetrics.InitializeMetrics(app.GrpcServer)
 
+	pingInterval, err := time.ParseDuration(app.ServiceConfig.Database.PingInterval)
+	if err != nil {
+		return fmt.Errorf("failed to parse ping interval: %v", err)
+	}
 	app.LoggingClient.Debug("creating healthcheck service")
-	health, err := healthcheck.NewHealthCheck(app.ServiceConfig, app.metrics)
+	health, err := healthcheck.NewHealthCheck(app.ServiceConfig, app.metrics, pingInterval)
 	if err != nil {
 		return fmt.Errorf("failed to create healthcheck service:%v", err)
 	}
@@ -118,7 +123,8 @@ func (app *App) RunServer() error {
 	go health.StartHealthCheckService(app.DbServerClient)
 
 	go func() {
-		metricsServer := &http.Server{Addr: fmt.Sprintf(":%d", app.ServiceConfig.Metrics.Port)}
+		addr := fmt.Sprintf(":%d", app.ServiceConfig.Metrics.Port)
+		metricsServer := &http.Server{Addr: addr, ReadTimeout: READ_TIMEOUT}
 		muxHandler := http.NewServeMux()
 		muxHandler.Handle(METRICS_ENDPOINT, promhttp.HandlerFor(app.metrics.Registry, promhttp.HandlerOpts{
 			EnableOpenMetrics: true,

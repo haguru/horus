@@ -9,7 +9,7 @@ type DbClient interface {
 
 	// Ping returns error if mongodb is unreachable
 	Ping() error
-	
+
 	// Delete removes  a single document from database. Returns error if client fails to remove document
 	Delete(databaseName string, collectionName string, filterParms map[string]interface{}) error
 

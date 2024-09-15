@@ -3,9 +3,9 @@ package healthcheck
 import (
 	"time"
 
-	"github.com/haguru/horus/followerdb/config"
-	"github.com/haguru/horus/followerdb/pkg/interfaces"
-	appMetrics "github.com/haguru/horus/followerdb/pkg/prometheus"
+	"github.com/haguru/horus/useracctdb/config"
+	"github.com/haguru/horus/useracctdb/pkg/interfaces"
+	appMetrics "github.com/haguru/horus/useracctdb/pkg/prometheus"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"

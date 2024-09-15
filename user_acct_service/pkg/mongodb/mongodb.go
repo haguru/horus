@@ -3,6 +3,7 @@ package mongodb
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	"github.com/haguru/horus/useracctdb/pkg/interfaces"
@@ -18,6 +19,7 @@ type MongoDB struct {
 	Port       int
 	ServerOpts *options.ServerAPIOptions
 	Client     *mongo.Client
+	timeout    time.Duration
 	lc         logger.LoggingClient
 }
 
@@ -27,25 +29,25 @@ const (
 )
 
 // NewMongoDB returns a interface for db client and error if it occurs
-func NewMongoDB(host string, port int, lc logger.LoggingClient, opts *options.ServerAPIOptions) (interfaces.DbClient, error) {
+func NewMongoDB(host string, port int, lc logger.LoggingClient, timeout time.Duration, opts *options.ServerAPIOptions) (interfaces.DbClient, error) {
 	db := &MongoDB{
 		Host:       host,
 		Port:       port,
 		lc:         lc,
+		timeout:    timeout,
 		ServerOpts: opts,
 	}
-	client, err := db.Connect()
+	err := db.Connect()
 	if err != nil {
 		return nil, err
 	}
-	db.Client = client
 
 	return db, nil
 }
 
 // Connect returns a mongodb client and error.
 // If an error occurs mongodb client will be nil
-func (db MongoDB) Connect() (*mongo.Client, error) {
+func (db *MongoDB) Connect() error {
 	// Use the SetServerAPIOptions() method to set the Stable API version to 1
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1).SetStrict(true).SetDeprecationErrors(true)
 	if db.ServerOpts != nil {
@@ -55,25 +57,30 @@ func (db MongoDB) Connect() (*mongo.Client, error) {
 	opts := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
 
 	// Creat new client
+	db.lc.Debugf("connecting to database: %v", uri)
 	var err error
-	client, err := mongo.Connect(context.TODO(), opts)
+	db.Client, err = mongo.Connect(context.TODO(), opts)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	err = db.Ping(client)
+	db.lc.Debugf("pinging database: %v", uri)
+	err = db.Ping()
 	if err != nil {
-		return nil, fmt.Errorf("failed to successfully ping mongodb server: %v", err)
+		return fmt.Errorf("failed to successfully ping mongodb server: %v", err)
 	}
 
-	return client, nil
+	db.lc.Debugf("scucessfully connected to database: %v", uri)
+	return nil
 }
 
 // Ping returns error if mongodb is unreachable
-func (db MongoDB) Ping(client *mongo.Client) error {
+func (db *MongoDB) Ping() error {
 	// Send a ping to confirm a successful connection
 	var result bson.M
-	if err := client.Database("admin").RunCommand(context.TODO(), bson.D{{Key: "ping", Value: 1}}).Decode(&result); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), db.timeout)
+	defer cancel()
+	if err := db.Client.Database("admin").RunCommand(ctx, bson.D{{Key: "ping", Value: 1}}).Decode(&result); err != nil {
 		return err
 	}
 
@@ -81,7 +88,7 @@ func (db MongoDB) Ping(client *mongo.Client) error {
 }
 
 // Disconnect returns error if client is unable to disconnect from mongodb
-func (db MongoDB) Disconnect(context context.Context) error {
+func (db *MongoDB) Disconnect(context context.Context) error {
 	if err := db.Client.Disconnect(context); err != nil {
 		return err
 	}
@@ -90,7 +97,7 @@ func (db MongoDB) Disconnect(context context.Context) error {
 }
 
 // Create a new docment returns object id string and error if client fails to insert document into database
-func (db MongoDB) Create(databaseName string, collectionName string, doc interface{}) (string, error) {
+func (db *MongoDB) Create(databaseName string, collectionName string, doc interface{}) (string, error) {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 
 	r, err := collection.InsertOne(context.TODO(), doc)
@@ -107,7 +114,7 @@ func (db MongoDB) Create(databaseName string, collectionName string, doc interfa
 }
 
 // Get reteives a document from database. Returns an interface containing the document and error if client fails to decode data.
-func (db MongoDB) Get(databaseName string, collectionName string, filterParams map[string]interface{}) (interface{}, error) {
+func (db *MongoDB) Get(databaseName string, collectionName string, filterParams map[string]interface{}) (interface{}, error) {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 
 	filter := db.filter(bson.M{}, filterParams)
@@ -123,7 +130,7 @@ func (db MongoDB) Get(databaseName string, collectionName string, filterParams m
 }
 
 // Update updates a single document in database. Returns error if client fails to  update document or build update command
-func (db MongoDB) Update(databaseName string, collectionName string, filterParams map[string]interface{}, updateOperator string, items map[string]interface{}) error {
+func (db *MongoDB) Update(databaseName string, collectionName string, filterParams map[string]interface{}, updateOperator string, items map[string]interface{}) error {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 
 	filter := db.filter(bson.M{}, filterParams)
@@ -147,7 +154,7 @@ func (db MongoDB) Update(databaseName string, collectionName string, filterParam
 }
 
 // Delete removes  a single document from database. Returns error if client fails to remove document
-func (db MongoDB) Delete(databaseName string, collectionName string, filterParams map[string]interface{}) error {
+func (db *MongoDB) Delete(databaseName string, collectionName string, filterParams map[string]interface{}) error {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 
 	filter := db.filter(bson.M{}, filterParams)
@@ -165,7 +172,7 @@ func (db MongoDB) Delete(databaseName string, collectionName string, filterParam
 	return nil
 }
 
-func (db MongoDB) filter(bsonMap bson.M, searchParams map[string]interface{}) bson.M {
+func (db *MongoDB) filter(bsonMap bson.M, searchParams map[string]interface{}) bson.M {
 	for key, value := range searchParams {
 		bsonMap[key] = value
 	}
@@ -173,7 +180,7 @@ func (db MongoDB) filter(bsonMap bson.M, searchParams map[string]interface{}) bs
 }
 
 // DocumentExist checks to see if a document exists in database. Returns bool and error if client fails to run command.
-func (db MongoDB) DocumentExist(databaseName string, collectionName string, filterParams map[string]interface{}) (bool, error) {
+func (db *MongoDB) DocumentExist(databaseName string, collectionName string, filterParams map[string]interface{}) (bool, error) {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 
 	filter := db.filter(bson.M{}, filterParams)
@@ -187,7 +194,7 @@ func (db MongoDB) DocumentExist(databaseName string, collectionName string, filt
 }
 
 // updateCommand builds update command. Returns interface containing commandand, and error if update operator is not supported
-func (db MongoDB) updateCommand(updateOperator string, items map[string]interface{}) (interface{}, error) {
+func (db *MongoDB) updateCommand(updateOperator string, items map[string]interface{}) (interface{}, error) {
 	switch updateOperator {
 	case "currentDate":
 		return CurrentDateOp{CurrentDate: items}, nil
