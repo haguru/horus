@@ -3,18 +3,19 @@ package prometheus
 import (
 	"context"
 
-	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
+	
 	"github.com/haguru/horus/crumbdb/config"
-	"go.opentelemetry.io/otel/trace"
-
-	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
+	
+	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/auth"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/prometheus/client_golang/prometheus"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/codes"
-	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/status"
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 var BUCKETS = []float64{0.001, 0.01, 0.1, 0.3, 0.6, 1, 3, 6, 9, 20, 30, 60, 90, 120}

@@ -7,21 +7,21 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/haguru/horus/crumbdb/config"
 	"github.com/haguru/horus/crumbdb/internal/routes"
-	pb "github.com/haguru/horus/crumbdb/internal/routes/protos"
 	"github.com/haguru/horus/crumbdb/pkg/healthcheck"
 	"github.com/haguru/horus/crumbdb/pkg/mongodb"
 	"github.com/haguru/horus/crumbdb/pkg/mongodb/interfaces"
 	appMetrics "github.com/haguru/horus/crumbdb/pkg/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-
+	pb "github.com/haguru/horus/crumbdb/internal/routes/protos"
+	
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	"github.com/go-playground/validator/v10"
-	grpcprom "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
-	"github.com/haguru/horus/crumbdb/config"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
+	grpcprom "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 )
 
 const (
@@ -30,12 +30,12 @@ const (
 )
 
 type App struct {
-	LoggingClient  logger.LoggingClient
 	AppCtx         context.Context
-	ServiceConfig  *config.ServiceConfig
-	Route          *routes.Route
-	GrpcServer     *grpc.Server
 	DbServerClient interfaces.Client
+	GrpcServer     *grpc.Server
+	LoggingClient  logger.LoggingClient
+	Route          *routes.Route
+	ServiceConfig  *config.ServiceConfig
 	metrics        *appMetrics.Metrics
 }
 

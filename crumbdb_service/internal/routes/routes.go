@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/haguru/horus/crumbdb/config"
-	pb "github.com/haguru/horus/crumbdb/internal/routes/protos"
 	"github.com/haguru/horus/crumbdb/pkg/mongodb/interfaces"
+	pb "github.com/haguru/horus/crumbdb/internal/routes/protos"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	"github.com/go-playground/validator/v10"
