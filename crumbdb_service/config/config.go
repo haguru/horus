@@ -15,14 +15,21 @@ type ServiceConfig struct {
 	LogLevel string   `yaml:"loglevel" validate:"required"`
 	Port     int      `yaml:"port" validate:"required"`
 	Database Database `yaml:"database" validate:"required"`
+	Metrics  Metrics  `yaml:"metrics" validate:"required"`
 }
 
 type Database struct {
-	Host       string        `yaml:"host" validate:"required"`
-	Port       int           `yaml:"port" validate:"required"`
-	Name       string        `yaml:"name" validate:"required"`
-	Collection string        `yaml:"collection" validate:"required"`
-	Options    ServerOptions `yaml:"options"`
+	Collection   string        `yaml:"collection" validate:"required"`
+	Host         string        `yaml:"host" validate:"required"`
+	Name         string        `yaml:"name" validate:"required"`
+	Options      ServerOptions `yaml:"options"`
+	PingInterval string        `yaml:"ping_interval" validate:"required"`
+	Port         int           `yaml:"port" validate:"required"`
+	Timeout      string        `yaml:"timeout" validate:"required"`
+}
+
+type Metrics struct {
+	Port int `yaml:"port" validate:"required"`
 }
 
 type ServerOptions struct {

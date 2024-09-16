@@ -8,7 +8,7 @@ import (
 	pb "github.com/haguru/horus/crumbdb/internal/routes/protos"
 	"github.com/haguru/horus/crumbdb/pkg/mongodb/interfaces"
 
-	"github.com/edgexfoundry/go-mod-core-contracts/v3/clients/logger"
+	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson"
 )

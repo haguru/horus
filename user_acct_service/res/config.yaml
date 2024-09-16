@@ -2,11 +2,14 @@ name: useracct_service
 port: 50053
 loglevel: DEBUG
 database:
-  host: useracctdb 
-  port: 27017 
+  host: localhost #useracctdb 
+  port: 50054 #27017 
   name: horus
+  timeout: 5s
+  ping_interval: 5s
   collection: users
   options:
     setstrict: true
     setdeprecationerrors: true
-    
+metrics:
+  port: 52112

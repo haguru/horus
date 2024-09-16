@@ -2,11 +2,15 @@ name: crumbdb_service
 port: 50051
 loglevel: DEBUG
 database:
-  host: crumbdb 
-  port: 27017 
+  host: localhost #crumbdb 
+  port: 50052 #27017 
   name: horus
+  timeout: 5s
+  ping_interval: 5s
   collection: crumbs
   options:
     setstrict: true
     setdeprecationerrors: true
+metrics:
+  port: 52112
     

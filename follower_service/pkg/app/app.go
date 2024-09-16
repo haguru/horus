@@ -5,29 +5,28 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	// "time"
+	"time"
 
 	"github.com/haguru/horus/followerdb/config"
 	"github.com/haguru/horus/followerdb/internal/routes"
 	pb "github.com/haguru/horus/followerdb/internal/routes/protos"
+	"github.com/haguru/horus/followerdb/pkg/healthcheck"
 	"github.com/haguru/horus/followerdb/pkg/interfaces"
 	"github.com/haguru/horus/followerdb/pkg/mongodb"
 	appMetrics "github.com/haguru/horus/followerdb/pkg/prometheus"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	"github.com/go-playground/validator/v10"
+	grpcprom "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
-	// "google.golang.org/grpc/health"
-	// "google.golang.org/grpc/health/grpc_health_v1"
-	grpcprom "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
-	// healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 const (
 	METRICS_ENDPOINT = "/metrics"
+	READ_TIMEOUT     = 500 * time.Millisecond
 )
 
 type App struct {
@@ -59,7 +58,13 @@ func NewApp() (*App, error) {
 
 	host := serviceConfig.Database.Host
 	port := serviceConfig.Database.Port
-	db, err := mongodb.NewMongoDB(host, port, lc, nil)
+
+	timeout, err := time.ParseDuration(serviceConfig.Database.Timeout)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse timeout: %v", err)
+	}
+
+	db, err := mongodb.NewMongoDB(host, port, lc, timeout, nil)
 	if err != nil {
 		lc.Errorf("failed to connect, %v\n", err)
 		return nil, err
@@ -68,7 +73,7 @@ func NewApp() (*App, error) {
 	metrics := appMetrics.NewMetrics(serviceConfig)
 
 	// initiate routes
-	route := routes.NewRoute(lc, &serviceConfig.Database, db, validate, metrics)
+	route := routes.NewRoute(lc, &serviceConfig.Database, db, validate)
 
 	return &App{
 		LoggingClient:  lc,
@@ -102,37 +107,24 @@ func (app *App) RunServer() error {
 	pb.RegisterFollowerDBServer(app.GrpcServer, app.Route)
 	app.metrics.GrpcMetrics.InitializeMetrics(app.GrpcServer)
 
-	// // health service
-	// healthService := health.NewServer()
-	// // Register the health service with the gRPC server
-	// grpc_health_v1.RegisterHealthServer(app.GrpcServer, healthService)
-	// // Set the service health status
-	// healthService.SetServingStatus(app.ServiceConfig.Name, grpc_health_v1.HealthCheckResponse_SERVING)
+	pingInterval, err := time.ParseDuration(app.ServiceConfig.Database.PingInterval)
+	if err != nil {
+		return fmt.Errorf("failed to parse ping interval: %v", err)
+	}
+	app.LoggingClient.Debug("creating healthcheck service")
+	health, err := healthcheck.NewHealthCheck(app.ServiceConfig, app.metrics, pingInterval)
+	if err != nil {
+		return fmt.Errorf("failed to create healthcheck service:%v", err)
+	}
 
-	// ticker := time.NewTicker(5 * time.Second)
-
-	// go func(app *App) {
-	// 	for {
-	// 		select {
-	// 		// case <-done:
-	// 		//     return
-	// 		case <-ticker.C:
-	// 			err := app.DbServerClient.Ping()
-	// 			if err != nil {
-	// 				// app.LoggingClient.Debug("updating health status: NOT_SERVING",)
-	// 				healthService.SetServingStatus(app.ServiceConfig.Name, healthpb.HealthCheckResponse_NOT_SERVING)
-	// 			}else{
-	// 				// app.LoggingClient.Debug("updating health status: SERVING")
-	// 				healthService.SetServingStatus(app.ServiceConfig.Name,healthpb.HealthCheckResponse_SERVING)
-	// 			}
-
-				
-	// 		}
-	// 	}
-	// }(app)
+	app.LoggingClient.Debug("initializing healthcheck service")
+	health.Initialize(app.GrpcServer)
+	app.LoggingClient.Debug("starting healthcheck service")
+	go health.StartHealthCheckService(app.DbServerClient)
 
 	go func() {
-		metricsServer := &http.Server{Addr: fmt.Sprintf(":%d", app.ServiceConfig.Metrics.Port)}
+		addr := fmt.Sprintf(":%d", app.ServiceConfig.Metrics.Port)
+		metricsServer := &http.Server{Addr: addr, ReadTimeout: READ_TIMEOUT}
 		muxHandler := http.NewServeMux()
 		muxHandler.Handle(METRICS_ENDPOINT, promhttp.HandlerFor(app.metrics.Registry, promhttp.HandlerOpts{
 			EnableOpenMetrics: true,
