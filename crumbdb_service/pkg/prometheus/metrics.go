@@ -3,19 +3,18 @@ package prometheus
 import (
 	"context"
 
-	
 	"github.com/haguru/horus/crumbdb/config"
-	
+
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/auth"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/status"
 )
 
 var BUCKETS = []float64{0.001, 0.01, 0.1, 0.3, 0.6, 1, 3, 6, 9, 20, 30, 60, 90, 120}
@@ -29,7 +28,7 @@ type Metrics struct {
 func NewMetrics(config *config.ServiceConfig) *Metrics {
 	healthMetric := prometheus.NewGauge(
 		prometheus.GaugeOpts{
-			Namespace: config.Name,
+			Namespace: config.ServiceName,
 			Name:      "health",
 			Help:      "Checks the health of the connection to DB",
 		})

@@ -1,10 +1,10 @@
-name: follower_service
+service_name: follower_service
 port: 50055
 loglevel: DEBUG
 database:
   host: followerdb
   port: 27017 
-  name: horus
+  database_name: horus
   timeout: 5s
   ping_interval: 5s
   collection: users
@@ -13,4 +13,7 @@ database:
     setdeprecationerrors: true
 metrics:
   port: 52112
+consul:
+  host: consul
+  port: 8500
     

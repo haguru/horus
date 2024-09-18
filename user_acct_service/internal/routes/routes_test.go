@@ -39,8 +39,8 @@ func TestRoute_Create(t *testing.T) {
 			name: "sucessful create",
 			fields: fields{
 				dbConfig: &config.Database{
-					Name:       "horus",
-					Collection: "users",
+					DatabaseName: "horus",
+					Collection:   "users",
 				},
 				lc: logger.NewMockClient(),
 			},
@@ -66,8 +66,8 @@ func TestRoute_Create(t *testing.T) {
 			name: "DocumentExist create",
 			fields: fields{
 				dbConfig: &config.Database{
-					Name:       "horus",
-					Collection: "users",
+					DatabaseName: "horus",
+					Collection:   "users",
 				},
 				lc: logger.NewMockClient(),
 			},
@@ -91,8 +91,8 @@ func TestRoute_Create(t *testing.T) {
 			name: "DocumentExist client error",
 			fields: fields{
 				dbConfig: &config.Database{
-					Name:       "horus",
-					Collection: "users",
+					DatabaseName: "horus",
+					Collection:   "users",
 				},
 				lc: logger.NewMockClient(),
 			},
@@ -116,8 +116,8 @@ func TestRoute_Create(t *testing.T) {
 			name: "validation error - no username",
 			fields: fields{
 				dbConfig: &config.Database{
-					Name:       "horus",
-					Collection: "users",
+					DatabaseName: "horus",
+					Collection:   "users",
 				},
 				lc: logger.NewMockClient(),
 			},
@@ -141,8 +141,8 @@ func TestRoute_Create(t *testing.T) {
 			name: "validation error - no password",
 			fields: fields{
 				dbConfig: &config.Database{
-					Name:       "horus",
-					Collection: "users",
+					DatabaseName: "horus",
+					Collection:   "users",
 				},
 				lc: logger.NewMockClient(),
 			},
@@ -166,8 +166,8 @@ func TestRoute_Create(t *testing.T) {
 			name: "client error",
 			fields: fields{
 				dbConfig: &config.Database{
-					Name:       "horus",
-					Collection: "users",
+					DatabaseName: "horus",
+					Collection:   "users",
 				},
 				lc: logger.NewMockClient(),
 			},
@@ -233,8 +233,8 @@ func TestRoute_GetUser(t *testing.T) {
 			name: "successful get user",
 			fields: fields{
 				dbCconfig: &config.Database{
-					Name:       "horus",
-					Collection: "users",
+					DatabaseName: "horus",
+					Collection:   "users",
 				},
 				lc: logger.NewMockClient(),
 			},
@@ -263,8 +263,8 @@ func TestRoute_GetUser(t *testing.T) {
 			name: "validation error- no email",
 			fields: fields{
 				dbCconfig: &config.Database{
-					Name:       "horus",
-					Collection: "users",
+					DatabaseName: "horus",
+					Collection:   "users",
 				},
 				lc: logger.NewMockClient(),
 			},
@@ -283,8 +283,8 @@ func TestRoute_GetUser(t *testing.T) {
 			name: "client error",
 			fields: fields{
 				dbCconfig: &config.Database{
-					Name:       "horus",
-					Collection: "users",
+					DatabaseName: "horus",
+					Collection:   "users",
 				},
 				lc: logger.NewMockClient(),
 			},
@@ -343,8 +343,8 @@ func TestRoute_UpdatePassword(t *testing.T) {
 			name: "successful update",
 			fields: fields{
 				dbCconfig: &config.Database{
-					Name:       "horus",
-					Collection: "users",
+					DatabaseName: "horus",
+					Collection:   "users",
 				},
 				lc: logger.NewMockClient(),
 			},
@@ -365,8 +365,8 @@ func TestRoute_UpdatePassword(t *testing.T) {
 			name: "dbclient fails",
 			fields: fields{
 				dbCconfig: &config.Database{
-					Name:       "horus",
-					Collection: "users",
+					DatabaseName: "horus",
+					Collection:   "users",
 				},
 				lc: logger.NewMockClient(),
 			},
@@ -387,8 +387,8 @@ func TestRoute_UpdatePassword(t *testing.T) {
 			name: "validation error - no email",
 			fields: fields{
 				dbCconfig: &config.Database{
-					Name:       "horus",
-					Collection: "users",
+					DatabaseName: "horus",
+					Collection:   "users",
 				},
 				lc: logger.NewMockClient(),
 			},
@@ -409,8 +409,8 @@ func TestRoute_UpdatePassword(t *testing.T) {
 			name: "validation error - no password",
 			fields: fields{
 				dbCconfig: &config.Database{
-					Name:       "horus",
-					Collection: "users",
+					DatabaseName: "horus",
+					Collection:   "users",
 				},
 				lc: logger.NewMockClient(),
 			},
@@ -471,8 +471,8 @@ func TestRoute_Delete(t *testing.T) {
 			name: "successfull delete",
 			fields: fields{
 				dbCconfig: &config.Database{
-					Name:       "horus",
-					Collection: "users",
+					DatabaseName: "horus",
+					Collection:   "users",
 				},
 				lc: logger.NewMockClient(),
 			},
@@ -492,8 +492,8 @@ func TestRoute_Delete(t *testing.T) {
 			name: "validation error- no username",
 			fields: fields{
 				dbCconfig: &config.Database{
-					Name:       "horus",
-					Collection: "users",
+					DatabaseName: "horus",
+					Collection:   "users",
 				},
 				lc: logger.NewMockClient(),
 			},
@@ -513,8 +513,8 @@ func TestRoute_Delete(t *testing.T) {
 			name: "db client error",
 			fields: fields{
 				dbCconfig: &config.Database{
-					Name:       "horus",
-					Collection: "users",
+					DatabaseName: "horus",
+					Collection:   "users",
 				},
 				lc: logger.NewMockClient(),
 			},

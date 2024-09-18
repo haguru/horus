@@ -21,14 +21,14 @@ func TestReadLocalConfig(t *testing.T) {
 				configPath: "../res/config.yaml",
 			},
 			want: &ServiceConfig{
-				Name:     "crumbdb",
-				Port:     50051,
-				LogLevel: "DEBUG",
+				ServiceName: "crumbdb",
+				Port:        50051,
+				LogLevel:    "DEBUG",
 				Database: Database{
-					Host:       "localhost",
-					Port:       27017,
-					Name:       "horus",
-					Collection: "crumbs",
+					Host:         "localhost",
+					Port:         27017,
+					DatabaseName: "horus",
+					Collection:   "crumbs",
 					Options: ServerOptions{
 						SetStrict:            true,
 						SetDeprecationErrors: true,

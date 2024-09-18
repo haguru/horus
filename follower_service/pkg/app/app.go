@@ -7,13 +7,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/haguru/horus/followerdb/config"
-	"github.com/haguru/horus/followerdb/internal/routes"
-	pb "github.com/haguru/horus/followerdb/internal/routes/protos"
-	"github.com/haguru/horus/followerdb/pkg/healthcheck"
-	"github.com/haguru/horus/followerdb/pkg/interfaces"
-	"github.com/haguru/horus/followerdb/pkg/mongodb"
-	appMetrics "github.com/haguru/horus/followerdb/pkg/prometheus"
+	"github.com/haguru/horus/follower_service/config"
+	"github.com/haguru/horus/follower_service/internal/routes"
+	pb "github.com/haguru/horus/follower_service/internal/routes/protos"
+	"github.com/haguru/horus/follower_service/pkg/consul"
+	"github.com/haguru/horus/follower_service/pkg/healthcheck"
+	"github.com/haguru/horus/follower_service/pkg/interfaces"
+	"github.com/haguru/horus/follower_service/pkg/mongodb"
+	appMetrics "github.com/haguru/horus/follower_service/pkg/prometheus"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	"github.com/go-playground/validator/v10"
@@ -31,6 +32,7 @@ const (
 
 type App struct {
 	AppCtx         context.Context
+	Consul         *consul.Consul
 	DbServerClient interfaces.DbClient
 	GrpcServer     *grpc.Server
 	LoggingClient  logger.LoggingClient
@@ -54,7 +56,7 @@ func NewApp() (*App, error) {
 		return nil, fmt.Errorf("validation error: %s", errors)
 	}
 
-	lc := logger.NewClient(serviceConfig.Name, serviceConfig.LogLevel)
+	lc := logger.NewClient(serviceConfig.ServiceName, serviceConfig.LogLevel)
 
 	host := serviceConfig.Database.Host
 	port := serviceConfig.Database.Port
@@ -75,12 +77,18 @@ func NewApp() (*App, error) {
 	// initiate routes
 	route := routes.NewRoute(lc, &serviceConfig.Database, db, validate)
 
+	consulClient, err := consul.NewConsul(serviceConfig.Consul)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initiate connection to Consul: %v", err)
+	}
+
 	return &App{
-		LoggingClient:  lc,
 		AppCtx:         context.Background(),
-		ServiceConfig:  serviceConfig,
+		Consul:         consulClient,
 		DbServerClient: db,
+		LoggingClient:  lc,
 		Route:          route,
+		ServiceConfig:  serviceConfig,
 		metrics:        metrics,
 	}, nil
 }
@@ -89,6 +97,11 @@ func (app *App) RunServer() error {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", app.ServiceConfig.Port))
 	if err != nil {
 		return fmt.Errorf("failed to listen: %v", err)
+	}
+
+	err = app.Consul.RegisterService(app.ServiceConfig.ServiceName, app.ServiceConfig.Port)
+	if err != nil {
+		return fmt.Errorf("failed to register service: %v", err)
 	}
 
 	// Create a gRPC Server with gRPC interceptor.

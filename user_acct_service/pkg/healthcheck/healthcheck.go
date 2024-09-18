@@ -42,7 +42,7 @@ func (h *HealthCheck) Initialize(serviceGrpcServer *grpc.Server) {
 }
 
 func (h *HealthCheck) SetStatus(status healthpb.HealthCheckResponse_ServingStatus) {
-	h.Health.SetServingStatus(h.ServiceConfig.Name, status)
+	h.Health.SetServingStatus(h.ServiceConfig.ServiceName, status)
 }
 
 func (h *HealthCheck) StartHealthCheckService(client interfaces.DbClient) {

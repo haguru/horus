@@ -28,7 +28,7 @@ type Metrics struct {
 func NewMetrics(config *config.ServiceConfig) *Metrics {
 	healthMetric := prometheus.NewGauge(
 		prometheus.GaugeOpts{
-			Namespace: config.Name,
+			Namespace: config.ServiceName,
 			Name:      "health",
 			Help:      "Checks the health of the connection to DB",
 		})

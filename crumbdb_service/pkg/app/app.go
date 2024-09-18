@@ -9,19 +9,19 @@ import (
 
 	"github.com/haguru/horus/crumbdb/config"
 	"github.com/haguru/horus/crumbdb/internal/routes"
+	pb "github.com/haguru/horus/crumbdb/internal/routes/protos"
 	"github.com/haguru/horus/crumbdb/pkg/healthcheck"
 	"github.com/haguru/horus/crumbdb/pkg/mongodb"
 	"github.com/haguru/horus/crumbdb/pkg/mongodb/interfaces"
 	appMetrics "github.com/haguru/horus/crumbdb/pkg/prometheus"
-	pb "github.com/haguru/horus/crumbdb/internal/routes/protos"
-	
+
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	"github.com/go-playground/validator/v10"
+	grpcprom "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
-	grpcprom "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 )
 
 const (
@@ -54,7 +54,7 @@ func NewApp() (*App, error) {
 		return nil, fmt.Errorf("validation error: %s", errors)
 	}
 
-	lc := logger.NewClient(serviceConfig.Name, serviceConfig.LogLevel)
+	lc := logger.NewClient(serviceConfig.ServiceName, serviceConfig.LogLevel)
 
 	host := serviceConfig.Database.Host
 	port := serviceConfig.Database.Port
@@ -70,7 +70,7 @@ func NewApp() (*App, error) {
 	}
 
 	dbConfig := serviceConfig.Database
-	err = db.CreateSpatialIndex(dbConfig.Name, dbConfig.Collection, mongodb.SPATIAL_INDEX_TYPE)
+	err = db.CreateSpatialIndex(dbConfig.DatabaseName, dbConfig.Collection, mongodb.SPATIAL_INDEX_TYPE)
 	if err != nil {
 		lc.Errorf("failed to create spatial index: %v", err)
 		return nil, err
