@@ -54,7 +54,7 @@ func NewApp() (*App, error) {
 		return nil, fmt.Errorf("validation error: %s", errors)
 	}
 
-	lc := logger.NewClient(serviceConfig.Name, serviceConfig.LogLevel)
+	lc := logger.NewClient(serviceConfig.ServiceName, serviceConfig.LogLevel)
 
 	host := serviceConfig.Database.Host
 	port := serviceConfig.Database.Port
@@ -70,7 +70,7 @@ func NewApp() (*App, error) {
 	}
 
 	dbConfig := serviceConfig.Database
-	err = db.CreateSpatialIndex(dbConfig.Name, dbConfig.Collection, mongodb.SPATIAL_INDEX_TYPE)
+	err = db.CreateSpatialIndex(dbConfig.DatabaseName, dbConfig.Collection, mongodb.SPATIAL_INDEX_TYPE)
 	if err != nil {
 		lc.Errorf("failed to create spatial index: %v", err)
 		return nil, err

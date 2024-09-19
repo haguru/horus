@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
-	"github.com/haguru/horus/followerdb/pkg/interfaces"
+	"github.com/haguru/horus/follower_service/pkg/interfaces"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"

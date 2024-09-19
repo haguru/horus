@@ -42,7 +42,7 @@ func (r *Route) Create(ctx context.Context, crumb *pb.Crumb) (*pb.Id, error) {
 		return nil, fmt.Errorf("validation error: %s", errors)
 	}
 
-	id, err := r.dbClient.InsertRecord(r.dbConfig.Name, r.dbConfig.Collection, crumb)
+	id, err := r.dbClient.InsertRecord(r.dbConfig.DatabaseName, r.dbConfig.Collection, crumb)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (r *Route) GetCrumbs(point *pb.Point, stream pb.CrumbDB_GetCrumbsServer) er
 		return fmt.Errorf("validation error: %s", errors)
 	}
 
-	data, err := r.dbClient.SpaitalQuery(point.Type, point.GetCoordinates(), r.dbConfig.Name, r.dbConfig.Collection)
+	data, err := r.dbClient.SpaitalQuery(point.Type, point.GetCoordinates(), r.dbConfig.DatabaseName, r.dbConfig.Collection)
 	if err != nil {
 		r.lc.Errorf("failed to run spatial query: %v", err)
 		return err
@@ -98,7 +98,7 @@ func (r *Route) Update(ctx context.Context, crumb *pb.Crumb) (*pb.Id, error) {
 
 	messageItem := map[string]interface{}{"message": crumb.Message}
 
-	err := r.dbClient.Update(r.dbConfig.Name, r.dbConfig.Collection, crumb.Id, messageItem)
+	err := r.dbClient.Update(r.dbConfig.DatabaseName, r.dbConfig.Collection, crumb.Id, messageItem)
 	if err != nil {
 		r.lc.Errorf("failed to update data with id '%v' : %v", crumb.GetId(), err)
 		return nil, err
@@ -111,8 +111,8 @@ func (r *Route) Update(ctx context.Context, crumb *pb.Crumb) (*pb.Id, error) {
 
 func (r *Route) Delete(ctx context.Context, id *pb.Id) (*pb.Id, error) {
 	r.lc.Debug("received new Delete request")
-	//TODO: if nothing was deleted an error should be returned
-	err := r.dbClient.Delete(r.dbConfig.Name, r.dbConfig.Collection, id.GetValue())
+	// TODO: if nothing was deleted an error should be returned
+	err := r.dbClient.Delete(r.dbConfig.DatabaseName, r.dbConfig.Collection, id.GetValue())
 	if err != nil {
 		r.lc.Errorf("failed to delete data with id '%v': %v", id.GetValue(), err)
 		return nil, err
