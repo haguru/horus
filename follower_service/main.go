@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/haguru/horus/followerdb/pkg/app"
+	"github.com/haguru/horus/follower_service/pkg/app"
 )
 
 func main() {
@@ -21,7 +21,7 @@ func main() {
 
 	err = app.RunServer()
 	if err != nil {
-		app.LoggingClient.Errorf("failed to start grpc server: %v", err)
+		app.LoggingClient.Errorf("failed to start app: %v", err)
 		return
 	}
 	defer func() {

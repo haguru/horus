@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
-	"github.com/haguru/horus/followerdb/config"
+	"github.com/haguru/horus/follower_service/config"
 	"go.opentelemetry.io/otel/trace"
 
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
@@ -28,7 +28,7 @@ type Metrics struct {
 func NewMetrics(config *config.ServiceConfig) *Metrics {
 	healthMetric := prometheus.NewGauge(
 		prometheus.GaugeOpts{
-			Namespace: config.Name,
+			Namespace: config.ServiceName,
 			Name:      "health",
 			Help:      "Checks the health of the connection to DB",
 		})

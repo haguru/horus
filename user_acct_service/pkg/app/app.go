@@ -54,7 +54,7 @@ func NewApp() (*App, error) {
 		return nil, fmt.Errorf("validation error: %s", errors)
 	}
 
-	lc := logger.NewClient(serviceConfig.Name, serviceConfig.LogLevel)
+	lc := logger.NewClient(serviceConfig.ServiceName, serviceConfig.LogLevel)
 
 	host := serviceConfig.Database.Host
 	port := serviceConfig.Database.Port

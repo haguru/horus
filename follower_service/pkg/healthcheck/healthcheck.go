@@ -3,9 +3,9 @@ package healthcheck
 import (
 	"time"
 
-	"github.com/haguru/horus/followerdb/config"
-	"github.com/haguru/horus/followerdb/pkg/interfaces"
-	appMetrics "github.com/haguru/horus/followerdb/pkg/prometheus"
+	"github.com/haguru/horus/follower_service/config"
+	"github.com/haguru/horus/follower_service/pkg/interfaces"
+	appMetrics "github.com/haguru/horus/follower_service/pkg/prometheus"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
@@ -42,7 +42,7 @@ func (h *HealthCheck) Initialize(serviceGrpcServer *grpc.Server) {
 }
 
 func (h *HealthCheck) SetStatus(status healthpb.HealthCheckResponse_ServingStatus) {
-	h.Health.SetServingStatus(h.ServiceConfig.Name, status)
+	h.Health.SetServingStatus(h.ServiceConfig.ServiceName, status)
 }
 
 func (h *HealthCheck) StartHealthCheckService(client interfaces.DbClient) {

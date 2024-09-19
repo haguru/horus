@@ -6,13 +6,14 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
-	"github.com/go-playground/validator/v10"
 	"github.com/haguru/horus/crumbdb/config"
 	pb "github.com/haguru/horus/crumbdb/internal/routes/protos"
 	grpcMock "github.com/haguru/horus/crumbdb/internal/routes/protos/mocks"
 	"github.com/haguru/horus/crumbdb/pkg/mongodb"
 	"github.com/haguru/horus/crumbdb/pkg/mongodb/interfaces/mocks"
+
+	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
+	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/mock"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -39,8 +40,8 @@ func TestRoute_Create(t *testing.T) {
 			name: "success full create",
 			fields: fields{
 				dbCconfig: &config.Database{
-					Name:       "test",
-					Collection: "test",
+					DatabaseName: "test",
+					Collection:   "test",
 				},
 				lc: logger.MockLogger{},
 			},
@@ -66,8 +67,8 @@ func TestRoute_Create(t *testing.T) {
 			name: "fail to create",
 			fields: fields{
 				dbCconfig: &config.Database{
-					Name:       "test",
-					Collection: "test",
+					DatabaseName: "test",
+					Collection:   "test",
 				},
 				lc: logger.MockLogger{},
 			},
@@ -131,8 +132,8 @@ func TestRoute_GetCrumbs(t *testing.T) {
 			name: "succesfully get list of crumbs",
 			fields: fields{
 				dbCconfig: &config.Database{
-					Name:       "test",
-					Collection: "test",
+					DatabaseName: "test",
+					Collection:   "test",
 				},
 				lc: logger.NewMockClient(),
 			},
@@ -149,8 +150,8 @@ func TestRoute_GetCrumbs(t *testing.T) {
 			name: "stream fail to send list of crumbs",
 			fields: fields{
 				dbCconfig: &config.Database{
-					Name:       "test",
-					Collection: "test",
+					DatabaseName: "test",
+					Collection:   "test",
 				},
 				lc: logger.NewMockClient(),
 			},
@@ -167,8 +168,8 @@ func TestRoute_GetCrumbs(t *testing.T) {
 			name: "client fail to get list of crumbs",
 			fields: fields{
 				dbCconfig: &config.Database{
-					Name:       "test",
-					Collection: "test",
+					DatabaseName: "test",
+					Collection:   "test",
 				},
 				lc: logger.NewMockClient(),
 			},
@@ -223,8 +224,8 @@ func TestRoute_Update(t *testing.T) {
 			name: "successful update",
 			fields: fields{
 				dbCconfig: &config.Database{
-					Name:       "test",
-					Collection: "test",
+					DatabaseName: "test",
+					Collection:   "test",
 				},
 				lc: logger.NewMockClient(),
 			},
@@ -245,8 +246,8 @@ func TestRoute_Update(t *testing.T) {
 			name: "client failed to update",
 			fields: fields{
 				dbCconfig: &config.Database{
-					Name:       "test",
-					Collection: "test",
+					DatabaseName: "test",
+					Collection:   "test",
 				},
 				lc: logger.NewMockClient(),
 			},
@@ -305,8 +306,8 @@ func TestRoute_Delete(t *testing.T) {
 			name: "succesful delete",
 			fields: fields{
 				dbCconfig: &config.Database{
-					Name:       "test",
-					Collection: "test",
+					DatabaseName: "test",
+					Collection:   "test",
 				},
 				lc: logger.NewMockClient(),
 			},
@@ -326,8 +327,8 @@ func TestRoute_Delete(t *testing.T) {
 			name: "succesful delete",
 			fields: fields{
 				dbCconfig: &config.Database{
-					Name:       "test",
-					Collection: "test",
+					DatabaseName: "test",
+					Collection:   "test",
 				},
 				lc: logger.NewMockClient(),
 			},

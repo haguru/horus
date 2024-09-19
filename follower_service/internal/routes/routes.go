@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/haguru/horus/followerdb/config"
-	pb "github.com/haguru/horus/followerdb/internal/routes/protos"
-	"github.com/haguru/horus/followerdb/pkg/interfaces"
+	"github.com/haguru/horus/follower_service/config"
+	pb "github.com/haguru/horus/follower_service/internal/routes/protos"
+	"github.com/haguru/horus/follower_service/pkg/interfaces"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	"github.com/go-playground/validator/v10"
@@ -44,7 +44,7 @@ func (r *Route) AddFollow(ctx context.Context, follow *pb.Follow) (*pb.Id, error
 		return nil, fmt.Errorf("validation error: %s", errors)
 	}
 
-	id, err := r.dbClient.Create(r.dbConfig.Name, r.dbConfig.Collection, follow)
+	id, err := r.dbClient.Create(r.dbConfig.DatabaseName, r.dbConfig.Collection, follow)
 	if err != nil {
 		return nil, fmt.Errorf("failed to add follow: %v", err)
 	}
@@ -57,7 +57,7 @@ func (r *Route) GetFollowers(id *pb.Id, stream pb.FollowerDB_GetFollowersServer)
 	// r.metrics.RequestsCount.Inc()
 
 	filter := map[string]interface{}{"userId": id.GetValue()}
-	items, err := r.dbClient.GetAll(r.dbConfig.Name, r.dbConfig.Collection, filter)
+	items, err := r.dbClient.GetAll(r.dbConfig.DatabaseName, r.dbConfig.Collection, filter)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve follows for id %v: %v", id.GetValue(), err)
 	}
@@ -101,7 +101,7 @@ func (r *Route) Unfollow(ctx context.Context, follow *pb.Follow) (*pb.Status, er
 	}
 
 	filter := map[string]interface{}{"userId": follow.GetId(), "followerUserId": follow.GetFollowerId()}
-	err = r.dbClient.Delete(r.dbConfig.Name, r.dbConfig.Collection, filter)
+	err = r.dbClient.Delete(r.dbConfig.DatabaseName, r.dbConfig.Collection, filter)
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete follow: %v", err)
 	}

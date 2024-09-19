@@ -50,7 +50,7 @@ func (r *Route) Create(ctx context.Context, user *pb.User) (*pb.Id, error) {
 
 	// Verify user does not exist
 	filterParams := map[string]interface{}{"email": user.GetEmail()}
-	exist, err := r.dbClient.DocumentExist(r.dbConfig.Name, r.dbConfig.Collection, filterParams)
+	exist, err := r.dbClient.DocumentExist(r.dbConfig.DatabaseName, r.dbConfig.Collection, filterParams)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (r *Route) Create(ctx context.Context, user *pb.User) (*pb.Id, error) {
 	}
 
 	id := &pb.Id{}
-	id.Value, err = r.dbClient.Create(r.dbConfig.Name, r.dbConfig.Collection, user)
+	id.Value, err = r.dbClient.Create(r.dbConfig.DatabaseName, r.dbConfig.Collection, user)
 	if err != nil {
 		return nil, fmt.Errorf("database failed to create user: %v", err)
 	}
@@ -79,7 +79,7 @@ func (r *Route) GetUser(ctx context.Context, userReq *pb.UserRequest) (*pb.User,
 
 	user := &pb.User{}
 	filterParams := map[string]interface{}{"email": userReq.GetEmail()}
-	res, err := r.dbClient.Get(r.dbConfig.Name, r.dbConfig.Collection, filterParams)
+	res, err := r.dbClient.Get(r.dbConfig.DatabaseName, r.dbConfig.Collection, filterParams)
 	if err != nil {
 		return nil, fmt.Errorf("database failed to retrieve user data: %v", err)
 	}
@@ -105,7 +105,7 @@ func (r *Route) UpdatePassword(ctx context.Context, passwdReq *pb.PasswordReques
 
 	filterParams := map[string]interface{}{"email": passwdReq.Email}
 	updateItem := map[string]interface{}{"password": passwdReq.Password}
-	err = r.dbClient.Update(r.dbConfig.Name, r.dbConfig.Collection, filterParams, UPDATE_OPERATOR, updateItem)
+	err = r.dbClient.Update(r.dbConfig.DatabaseName, r.dbConfig.Collection, filterParams, UPDATE_OPERATOR, updateItem)
 	if err != nil {
 		status.Value = http.StatusInternalServerError
 		return status, fmt.Errorf("database failed to update password: %v", err)
@@ -126,7 +126,7 @@ func (r *Route) Delete(ctx context.Context, userReq *pb.UserRequest) (*pb.Status
 		return status, fmt.Errorf("validation error: %s", errors)
 	}
 	filterParams := map[string]interface{}{"email": userReq.GetEmail()}
-	err = r.dbClient.Delete(r.dbConfig.Name, r.dbConfig.Collection, filterParams)
+	err = r.dbClient.Delete(r.dbConfig.DatabaseName, r.dbConfig.Collection, filterParams)
 	if err != nil {
 		status.Value = http.StatusInternalServerError
 		return status, fmt.Errorf("database failed to delete user: %v", err)

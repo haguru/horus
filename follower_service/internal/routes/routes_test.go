@@ -8,10 +8,10 @@ import (
 
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	"github.com/go-playground/validator/v10"
-	"github.com/haguru/horus/followerdb/config"
-	pb "github.com/haguru/horus/followerdb/internal/routes/protos"
-	grpcMocks "github.com/haguru/horus/followerdb/internal/routes/protos/mocks"
-	"github.com/haguru/horus/followerdb/pkg/interfaces/mocks"
+	"github.com/haguru/horus/follower_service/config"
+	pb "github.com/haguru/horus/follower_service/internal/routes/protos"
+	grpcMocks "github.com/haguru/horus/follower_service/internal/routes/protos/mocks"
+	"github.com/haguru/horus/follower_service/pkg/interfaces/mocks"
 	"github.com/stretchr/testify/mock"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -78,8 +78,8 @@ func TestRoute_AddFollow(t *testing.T) {
 			mockClient.On("Create", mock.Anything, mock.Anything, mock.Anything).Return(tt.clientRtn, tt.clientErrRtn).Maybe()
 			r := &Route{
 				dbConfig: &config.Database{
-					Name:       "test_database",
-					Collection: "test_collection",
+					DatabaseName: "test_database",
+					Collection:   "test_collection",
 				},
 				dbClient:  mockClient,
 				lc:        logger.NewMockClient(),
@@ -154,8 +154,8 @@ func TestRoute_GetFollowers(t *testing.T) {
 			streamServerMock.On("Send", mock.Anything).Return(tt.streamErrRtn).Maybe()
 			r := &Route{
 				dbConfig: &config.Database{
-					Name:       "test_database",
-					Collection: "test_collection",
+					DatabaseName: "test_database",
+					Collection:   "test_collection",
 				},
 				dbClient: mockClient,
 				lc:       logger.NewMockClient(),
@@ -227,8 +227,8 @@ func TestRoute_Unfollow(t *testing.T) {
 			mockClient.On("Delete", mock.Anything, mock.Anything, mock.Anything).Return(tt.clientErrRtn).Maybe()
 			r := &Route{
 				dbConfig: &config.Database{
-					Name:       "test_database",
-					Collection: "test_collection",
+					DatabaseName: "test_database",
+					Collection:   "test_collection",
 				},
 				dbClient:  mockClient,
 				lc:        logger.NewMockClient(),
