@@ -13,3 +13,6 @@ database:
     setdeprecationerrors: true
 metrics:
   port: 52112
+consul:
+  host: consul
+  port: 8500
