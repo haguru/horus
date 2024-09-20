@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/haguru/horus/follower_service/config"
+	"github.com/haguru/horus/crumbdb/config"
 	consulapi "github.com/hashicorp/consul/api"
 )
 
