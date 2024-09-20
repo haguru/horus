@@ -7,11 +7,11 @@ import (
 	"testing"
 
 	"github.com/haguru/horus/crumbdb/config"
+	pb "github.com/haguru/horus/crumbdb/internal/routes/protos"
+	grpcMock "github.com/haguru/horus/crumbdb/internal/routes/protos/mocks"
 	"github.com/haguru/horus/crumbdb/pkg/mongodb"
 	"github.com/haguru/horus/crumbdb/pkg/mongodb/interfaces/mocks"
-	grpcMock "github.com/haguru/horus/crumbdb/internal/routes/protos/mocks"
-	pb "github.com/haguru/horus/crumbdb/internal/routes/protos"
-	
+
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/mock"

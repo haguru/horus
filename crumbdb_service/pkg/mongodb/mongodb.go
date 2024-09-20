@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/haguru/horus/crumbdb/pkg/mongodb/interfaces"
-	
+
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
