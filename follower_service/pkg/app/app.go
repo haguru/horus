@@ -77,7 +77,7 @@ func NewApp() (*App, error) {
 	// initiate routes
 	route := routes.NewRoute(lc, &serviceConfig.Database, db, validate)
 
-	consulClient, err := consul.NewConsul(serviceConfig.Consul)
+	consulClient, err := consul.NewConsul(&serviceConfig.Consul)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initiate connection to Consul: %v", err)
 	}

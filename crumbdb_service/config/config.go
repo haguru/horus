@@ -12,6 +12,7 @@ const (
 
 type ServiceConfig struct {
 	ServiceName string   `yaml:"service_name" validate:"required"`
+	Consul      Consul   `yaml:"consul" validate:"required"`
 	LogLevel    string   `yaml:"loglevel" validate:"required"`
 	Port        int      `yaml:"port" validate:"required"`
 	Database    Database `yaml:"database" validate:"required"`
@@ -30,6 +31,11 @@ type Database struct {
 
 type Metrics struct {
 	Port int `yaml:"port" validate:"required"`
+}
+
+type Consul struct {
+	Host string `yaml:"host" validate:"required"`
+	Port int    `yaml:"port" validate:"required"`
 }
 
 type ServerOptions struct {
