@@ -10,6 +10,7 @@ import (
 	"github.com/haguru/horus/useracctdb/config"
 	"github.com/haguru/horus/useracctdb/internal/routes"
 	pb "github.com/haguru/horus/useracctdb/internal/routes/protos"
+	"github.com/haguru/horus/useracctdb/pkg/consul"
 	"github.com/haguru/horus/useracctdb/pkg/healthcheck"
 	"github.com/haguru/horus/useracctdb/pkg/interfaces"
 	"github.com/haguru/horus/useracctdb/pkg/mongodb"
@@ -30,12 +31,13 @@ const (
 )
 
 type App struct {
-	LoggingClient  logger.LoggingClient
 	AppCtx         context.Context
-	ServiceConfig  *config.ServiceConfig
-	Route          *routes.Route
-	GrpcServer     *grpc.Server
+	Consul         *consul.Consul
 	DbServerClient interfaces.DbClient
+	GrpcServer     *grpc.Server
+	LoggingClient  logger.LoggingClient
+	Route          *routes.Route
+	ServiceConfig  *config.ServiceConfig
 	metrics        *appMetrics.Metrics
 }
 
@@ -73,6 +75,12 @@ func NewApp() (*App, error) {
 	metrics := appMetrics.NewMetrics(serviceConfig)
 
 	route := routes.NewRoute(lc, &serviceConfig.Database, db, validate)
+
+	consulClient, err := consul.NewConsul(serviceConfig.Consul)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initiate connection to Consul: %v", err)
+	}
+
 	return &App{
 		LoggingClient:  lc,
 		AppCtx:         context.Background(),
@@ -80,6 +88,7 @@ func NewApp() (*App, error) {
 		DbServerClient: db,
 		metrics:        metrics,
 		Route:          route,
+		Consul:         consulClient,
 	}, nil
 }
 
@@ -87,6 +96,11 @@ func (app *App) RunServer() error {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", app.ServiceConfig.Port))
 	if err != nil {
 		return fmt.Errorf("failed to listen: %v", err)
+	}
+
+	err = app.Consul.RegisterService(app.ServiceConfig.ServiceName, app.ServiceConfig.Port)
+	if err != nil {
+		return fmt.Errorf("failed to register service: %v", err)
 	}
 
 	// Create a gRPC Server with gRPC interceptor.

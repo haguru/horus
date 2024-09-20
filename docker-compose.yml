@@ -5,6 +5,7 @@ services:
     container_name: crumb_service
     depends_on:
       - crumbdb
+      - consul
     hostname: crumb_service
     image: haguru/crumbdb:0.0.0-dev
     ports:
@@ -18,6 +19,7 @@ services:
     container_name: useracct_service
     depends_on:
       - useracctdb
+      - consul
     hostname: useracct_service
     image: haguru/useracct:0.0.0-dev
     ports:
