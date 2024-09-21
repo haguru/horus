@@ -1,0 +1,135 @@
+package app
+
+import (
+	"context"
+	"fmt"
+	"net"
+	"net/http"
+	"time"
+
+	"github.com/haguru/horus/gateway/config"
+	"github.com/haguru/horus/gateway/pkg/consul"
+	"github.com/haguru/horus/gateway/pkg/healthcheck"
+	appMetrics "github.com/haguru/horus/gateway/pkg/prometheus"
+
+	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
+	"github.com/go-playground/validator/v10"
+	grpcprom "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"google.golang.org/grpc"
+)
+
+const (
+	METRICS_ENDPOINT = "/metrics"
+	READ_TIMEOUT     = 500 * time.Millisecond
+)
+
+type App struct {
+	AppCtx         context.Context
+	Consul         *consul.Consul
+	GrpcServer     *grpc.Server
+	LoggingClient  logger.LoggingClient
+	ServiceConfig  *config.ServiceConfig
+	metrics        *appMetrics.Metrics
+}
+
+func NewApp() (*App, error) {
+	serviceConfig, err := config.ReadLocalConfig(config.CONFIG_PATH)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read config locally: %v", err)
+	}
+
+	validate := validator.New()
+	err = validate.Struct(serviceConfig)
+	if err != nil {
+		// Validation failed, handle the error
+		errors := err.(validator.ValidationErrors)
+
+		return nil, fmt.Errorf("validation error: %s", errors)
+	}
+
+	lc := logger.NewClient(serviceConfig.ServiceName, serviceConfig.LogLevel)
+
+	metrics := appMetrics.NewMetrics(serviceConfig)
+
+	consulClient, err := consul.NewConsul(&serviceConfig.Consul)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initiate connection to Consul: %v", err)
+	}
+
+	return &App{
+		AppCtx:         context.Background(),
+		Consul:         consulClient,
+		LoggingClient:  lc,
+		ServiceConfig:  serviceConfig,
+		metrics:        metrics,
+	}, nil
+}
+
+func (app *App) RunServer() error {
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", app.ServiceConfig.Port))
+	if err != nil {
+		return fmt.Errorf("failed to listen: %v", err)
+	}
+
+	err = app.Consul.RegisterService(app.ServiceConfig.ServiceName, app.ServiceConfig.Port)
+	if err != nil {
+		return fmt.Errorf("failed to register service: %v", err)
+	}
+
+	// Create a gRPC Server with gRPC interceptor.
+	app.GrpcServer = grpc.NewServer(
+		grpc.StatsHandler(otelgrpc.NewServerHandler()),
+		grpc.ChainUnaryInterceptor(
+			grpc.UnaryServerInterceptor(app.metrics.GrpcMetrics.UnaryServerInterceptor(grpcprom.WithExemplarFromContext(appMetrics.ExemplarFromContext))),
+			logging.UnaryServerInterceptor(appMetrics.InterceptorLogger(app.LoggingClient), logging.WithFieldsFromContext(appMetrics.LogTraceID)),
+		),
+		grpc.ChainStreamInterceptor(
+			grpc.StreamServerInterceptor(app.metrics.GrpcMetrics.StreamServerInterceptor(grpcprom.WithExemplarFromContext(appMetrics.ExemplarFromContext))),
+			logging.StreamServerInterceptor(appMetrics.InterceptorLogger(app.LoggingClient), logging.WithFieldsFromContext(appMetrics.LogTraceID)),
+		),
+	)
+
+	// pb.RegisterFollowerDBServer(app.GrpcServer, app.Route)
+	app.metrics.GrpcMetrics.InitializeMetrics(app.GrpcServer)
+
+	pingInterval, err := time.ParseDuration(app.ServiceConfig.Database.PingInterval)
+	if err != nil {
+		return fmt.Errorf("failed to parse ping interval: %v", err)
+	}
+	app.LoggingClient.Debug("creating healthcheck service")
+	health, err := healthcheck.NewHealthCheck(app.ServiceConfig, app.metrics, pingInterval)
+	if err != nil {
+		return fmt.Errorf("failed to create healthcheck service:%v", err)
+	}
+
+	app.LoggingClient.Debug("initializing healthcheck service")
+	health.Initialize(app.GrpcServer)
+	app.LoggingClient.Debug("starting healthcheck service")
+	go health.StartHealthCheckService()
+
+	go func() {
+		addr := fmt.Sprintf(":%d", app.ServiceConfig.Metrics.Port)
+		metricsServer := &http.Server{Addr: addr, ReadTimeout: READ_TIMEOUT}
+		muxHandler := http.NewServeMux()
+		muxHandler.Handle(METRICS_ENDPOINT, promhttp.HandlerFor(app.metrics.Registry, promhttp.HandlerOpts{
+			EnableOpenMetrics: true,
+		}))
+
+		metricsServer.Handler = muxHandler
+		app.LoggingClient.Debugf("server(prometheus) listening at %v", app.ServiceConfig.Metrics.Port)
+		if err := metricsServer.ListenAndServe(); err != nil {
+			app.LoggingClient.Error("failed to start prometheus client")
+		}
+	}()
+
+	app.LoggingClient.Debugf("server(GRPC) listening at %v", lis.Addr())
+	err = app.GrpcServer.Serve(lis)
+	if err != nil {
+		return fmt.Errorf("failed to serve: %v", err)
+	}
+
+	return nil
+}

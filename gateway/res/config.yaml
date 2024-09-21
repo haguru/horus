@@ -1,0 +1,9 @@
+service_name: gateway_service
+port: 50057
+loglevel: DEBUG
+metrics:
+  port: 52112
+consul:
+  host: consul
+  port: 8500
+    
