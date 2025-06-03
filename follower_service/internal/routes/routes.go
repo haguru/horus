@@ -7,6 +7,7 @@ import (
 	"github.com/haguru/horus/follower_service/config"
 	pb "github.com/haguru/horus/follower_service/internal/routes/protos"
 	"github.com/haguru/horus/follower_service/pkg/interfaces"
+	appMetrics "github.com/haguru/horus/follower_service/pkg/prometheus"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	"github.com/go-playground/validator/v10"
@@ -18,11 +19,14 @@ type Route struct {
 	dbClient  interfaces.DbClient
 	lc        logger.LoggingClient
 	validator *validator.Validate
+	metrics   *appMetrics.Metrics
 	pb.UnimplementedFollowerDBServer
 }
 
-// TODO
+// NewRoute creates a new Route instance with the provided dependencies
 func NewRoute(lc logger.LoggingClient, config *config.Database, dbclient interfaces.DbClient, validator *validator.Validate) *Route {
+	// Create a new Route instance with the provided dependencies
+	// Note: metrics will be injected later by the app.go when initializing the server
 	return &Route{
 		dbConfig:  config,
 		dbClient:  dbclient,
@@ -31,9 +35,14 @@ func NewRoute(lc logger.LoggingClient, config *config.Database, dbclient interfa
 	}
 }
 
+// SetMetrics sets the metrics for the Route
+func (r *Route) SetMetrics(metrics *appMetrics.Metrics) {
+	r.metrics = metrics
+}
+
 func (r *Route) AddFollow(ctx context.Context, follow *pb.Follow) (*pb.Id, error) {
 	r.lc.Debugf("received AddFollow request")
-	// r.metrics.RequestsCount.Inc()
+	// Metrics are automatically collected by the gRPC interceptors
 
 	// Validate the User struct
 	err := r.validator.Struct(follow)
@@ -54,7 +63,7 @@ func (r *Route) AddFollow(ctx context.Context, follow *pb.Follow) (*pb.Id, error
 
 func (r *Route) GetFollowers(id *pb.Id, stream pb.FollowerDB_GetFollowersServer) error {
 	r.lc.Debugf("received Getfollowers request")
-	// r.metrics.RequestsCount.Inc()
+	// Metrics are automatically collected by the gRPC interceptors
 
 	filter := map[string]interface{}{"userId": id.GetValue()}
 	items, err := r.dbClient.GetAll(r.dbConfig.DatabaseName, r.dbConfig.Collection, filter)
@@ -89,7 +98,7 @@ func (r *Route) GetFollowers(id *pb.Id, stream pb.FollowerDB_GetFollowersServer)
 
 func (r *Route) Unfollow(ctx context.Context, follow *pb.Follow) (*pb.Status, error) {
 	r.lc.Debugf("received Unfollow request")
-	// r.metrics.RequestsCount.Inc()
+	// Metrics are automatically collected by the gRPC interceptors
 
 	// Validate the User struct
 	err := r.validator.Struct(follow)
@@ -106,6 +115,6 @@ func (r *Route) Unfollow(ctx context.Context, follow *pb.Follow) (*pb.Status, er
 		return nil, fmt.Errorf("failed to delete follow: %v", err)
 	}
 
-	// do I reall want to return a status?
+	// Return a status with HTTP 200 OK to indicate success
 	return &pb.Status{Value: 200}, nil
 }

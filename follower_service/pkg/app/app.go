@@ -76,6 +76,7 @@ func NewApp() (*App, error) {
 
 	// initiate routes
 	route := routes.NewRoute(lc, &serviceConfig.Database, db, validate)
+	route.SetMetrics(metrics)
 
 	consulClient, err := consul.NewConsul(&serviceConfig.Consul)
 	if err != nil {
