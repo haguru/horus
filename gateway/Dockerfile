@@ -17,18 +17,20 @@ ARG MAKE="make build"
 RUN $MAKE
 
 # final stage
-FROM alpine:3.18
-LABEL license='MIT license' 
+FROM alpine:3.20
+# RUN addgroup -S app && adduser -S -G app app
+EXPOSE 50055
+RUN apk --no-cache add ca-certificates dumb-init
+WORKDIR /home/app
+# USER app
+LABEL license='MIT license'
 LABEL Name=crumbDB Version=${VERSION}
 
-RUN apk --no-cache add ca-certificates dumb-init
 # Ensure using latest versions of all installed packages to avoid any recent CVEs
 RUN apk --no-cache upgrade
 
 COPY --from=builder /app/LICENSE /LICENSE
 COPY --from=builder /app/res/ /res/
 COPY --from=builder /app/gateway /gateway
-
-EXPOSE 50055
 
 CMD ["/gateway"]

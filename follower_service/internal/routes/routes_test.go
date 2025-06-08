@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
-	"github.com/go-playground/validator/v10"
+	reqValidator "github.com/go-playground/validator/v10"
 	"github.com/haguru/horus/follower_service/config"
 	pb "github.com/haguru/horus/follower_service/internal/routes/protos"
 	grpcMocks "github.com/haguru/horus/follower_service/internal/routes/protos/mocks"
@@ -71,10 +71,24 @@ func TestRoute_AddFollow(t *testing.T) {
 			want:         nil,
 			wantErr:      true,
 		},
+		{
+			name: "empty FollowerId",
+			args: args{
+				ctx: context.Background(),
+				follow: &pb.Follow{
+					Id:         "test_userid",
+					FollowerId: "",
+				},
+			},
+			clientRtn:    "",
+			clientErrRtn: nil,
+			want:         nil,
+			wantErr:      true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockClient := mocks.NewDbClient(t)
+			mockClient := mocks.NewMockDbClient(t)
 			mockClient.On("Create", mock.Anything, mock.Anything, mock.Anything).Return(tt.clientRtn, tt.clientErrRtn).Maybe()
 			r := &Route{
 				dbConfig: &config.Database{
@@ -83,7 +97,7 @@ func TestRoute_AddFollow(t *testing.T) {
 				},
 				dbClient:  mockClient,
 				lc:        logger.NewMockClient(),
-				validator: validator.New(),
+				validator: reqValidator.New(),
 			}
 			got, err := r.AddFollow(tt.args.ctx, tt.args.follow)
 			if (err != nil) != tt.wantErr {
@@ -96,10 +110,9 @@ func TestRoute_AddFollow(t *testing.T) {
 		})
 	}
 }
-
 func TestRoute_GetFollowers(t *testing.T) {
 	type args struct {
-		id *pb.Id
+		req *pb.GetFollowersRequest
 	}
 	tests := []struct {
 		name         string
@@ -110,13 +123,20 @@ func TestRoute_GetFollowers(t *testing.T) {
 		wantErr      bool
 	}{
 		{
-			name:         "Success GetFollowers",
-			clientRtn:    []bson.D{{{Key: "test_userId", Value: "test_followerUserId"}, {Key: "test_userId", Value: "test_followerUserId2"}}},
+			name: "Success GetFollowers",
+			clientRtn: interface{}([]bson.D{
+				{
+					bson.E{Key: "test_userId", Value: "test_followerUserId"},
+					bson.E{Key: "test_userId", Value: "test_followerUserId2"},
+				},
+			}),
 			clientErrRtn: nil,
 			streamErrRtn: nil,
 			args: args{
-				id: &pb.Id{
-					Value: "test_userId",
+				req: &pb.GetFollowersRequest{
+					UserId:   "test_userId",
+					Page:     1,
+					PageSize: 10,
 				},
 			},
 			wantErr: false,
@@ -127,29 +147,80 @@ func TestRoute_GetFollowers(t *testing.T) {
 			clientErrRtn: fmt.Errorf("failed"),
 			streamErrRtn: nil,
 			args: args{
-				id: &pb.Id{
-					Value: "test_userId",
+				req: &pb.GetFollowersRequest{
+					UserId:   "test_userId",
+					Page:     1,
+					PageSize: 10,
 				},
 			},
 			wantErr: true,
 		},
 		{
-			name:         "stream error",
-			clientRtn:    []bson.D{{{Key: "test_userId", Value: "test_followerUserId"}, {Key: "test_userId", Value: "test_followerUserId2"}}},
+			name: "stream error",
+			clientRtn: []bson.D{
+				{
+					bson.E{Key: "test_userId", Value: "test_followerUserId"},
+					bson.E{Key: "test_userId", Value: "test_followerUserId2"},
+				},
+			},
 			clientErrRtn: nil,
 			streamErrRtn: fmt.Errorf("failed"),
 			args: args{
-				id: &pb.Id{
-					Value: "test_userId",
+				req: &pb.GetFollowersRequest{
+					UserId:   "test_userId",
+					Page:     1,
+					PageSize: 10,
 				},
 			},
 			wantErr: true,
 		},
+		{
+			name: "PageSize equal to 0",
+			clientRtn: []bson.D{},
+			clientErrRtn: nil,
+			streamErrRtn: nil,
+			args: args{
+				req: &pb.GetFollowersRequest{
+					UserId:   "test_userId",
+					Page:     1,
+					PageSize: 0,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Very large Page number",
+			clientRtn: []bson.D{},
+			clientErrRtn: nil,
+			streamErrRtn: nil,
+			args: args{
+				req: &pb.GetFollowersRequest{
+					UserId:   "test_userId",
+					Page:     100000,
+					PageSize: 10,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Empty list of followers",
+			clientRtn: []bson.D{},
+			clientErrRtn: nil,
+			streamErrRtn: nil,
+			args: args{
+				req: &pb.GetFollowersRequest{
+					UserId:   "test_userId",
+					Page:     1,
+					PageSize: 10,
+				},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockClient := mocks.NewDbClient(t)
-			mockClient.On("GetAll", mock.Anything, mock.Anything, mock.Anything).Return(tt.clientRtn, tt.clientErrRtn).Maybe()
+			mockClient := mocks.NewMockDbClient(t)
+			mockClient.On("GetAll", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tt.clientRtn, tt.clientErrRtn).Maybe()
 			streamServerMock := grpcMocks.NewServerStreamingServer[pb.Id](t)
 			streamServerMock.On("Send", mock.Anything).Return(tt.streamErrRtn).Maybe()
 			r := &Route{
@@ -160,7 +231,7 @@ func TestRoute_GetFollowers(t *testing.T) {
 				dbClient: mockClient,
 				lc:       logger.NewMockClient(),
 			}
-			if err := r.GetFollowers(tt.args.id, streamServerMock); (err != nil) != tt.wantErr {
+			if err := r.GetFollowers(tt.args.req, streamServerMock); (err != nil) != tt.wantErr {
 				t.Errorf("Route.GetFollowers() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -220,10 +291,23 @@ func TestRoute_Unfollow(t *testing.T) {
 			want:         nil,
 			wantErr:      true,
 		},
+		{
+			name: "empty FollowerId",
+			args: args{
+				ctx: context.Background(),
+				follow: &pb.Follow{
+					Id:         "test_userId",
+					FollowerId: "",
+				},
+			},
+			clientErrRtn: nil,
+			want:         nil,
+			wantErr:      true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockClient := mocks.NewDbClient(t)
+			mockClient := mocks.NewMockDbClient(t)
 			mockClient.On("Delete", mock.Anything, mock.Anything, mock.Anything).Return(tt.clientErrRtn).Maybe()
 			r := &Route{
 				dbConfig: &config.Database{
@@ -232,7 +316,7 @@ func TestRoute_Unfollow(t *testing.T) {
 				},
 				dbClient:  mockClient,
 				lc:        logger.NewMockClient(),
-				validator: validator.New(),
+				validator: reqValidator.New(),
 			}
 			got, err := r.Unfollow(tt.args.ctx, tt.args.follow)
 			if (err != nil) != tt.wantErr {

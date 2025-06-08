@@ -80,7 +80,7 @@ func (db *MongoDB) Ping() error {
 	var result bson.M
 	ctx, cancel := context.WithTimeout(context.Background(), db.timeout)
 	defer cancel()
-	if err := db.Client.Database("admin").RunCommand(ctx, bson.D{{Key: "ping", Value: 1}}).Decode(&result); err != nil {
+	if err := db.Client.Database("admin").RunCommand(ctx, bson.D{bson.E{Key: "ping", Value: 1}}).Decode(&result); err != nil {
 		return err
 	}
 
@@ -130,12 +130,14 @@ func (db *MongoDB) Get(databaseName string, collectionName string, filterParams 
 }
 
 // GetAll reteives all documents from database based on filter. Returns an interface containing the document and error if client fails to decode data.
-func (db *MongoDB) GetAll(databaseName string, collectionName string, filterParams map[string]interface{}) (interface{}, error) {
+func (db *MongoDB) GetAll(databaseName string, collectionName string, filterParams map[string]interface{}, skip int32, limit int32) (interface{}, error) {
 	collection := db.Client.Database(databaseName).Collection(collectionName)
 
 	filter := db.filter(bson.M{}, filterParams)
 
-	cur, err := collection.Find(context.TODO(), filter)
+	options := options.Find().SetSkip(int64(skip)).SetLimit(int64(limit))
+
+	cur, err := collection.Find(context.TODO(), filter, options)
 	if err != nil {
 		return nil, err
 	}

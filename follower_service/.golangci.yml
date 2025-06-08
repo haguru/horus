@@ -2,3 +2,6 @@ linters:
   disable:
   enable:
     - gosec
+run:
+  skip-dirs:
+    - .*/mocks

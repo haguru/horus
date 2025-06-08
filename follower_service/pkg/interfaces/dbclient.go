@@ -23,7 +23,7 @@ type DbClient interface {
 	Get(databaseName string, collectionName string, filterParams map[string]interface{}) (interface{}, error)
 
 	// GetAll reteives all document from database based on filter. Returns an interface containing the document and error if client fails to decode data.
-	GetAll(databaseName string, collectionName string, filterParams map[string]interface{}) (interface{}, error)
+	GetAll(databaseName string, collectionName string, filterParams map[string]interface{}, skip int32, limit int32) (interface{}, error)
 
 	// Update updates a single document in database. Returns error if client fails to  update document or build update command
 	Update(databaseName string, collectionName string, filterParams map[string]interface{}, updateType string, items map[string]interface{}) error

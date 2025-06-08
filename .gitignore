@@ -25,3 +25,6 @@ vendor/
 
 # Go workspace file
 go.work
+
+# cline memory-bank directory   
+memory-bank/

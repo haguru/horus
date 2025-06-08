@@ -3,7 +3,7 @@ package config
 import (
 	"os"
 
-	"gopkg.in/yaml.v3"
+	yamlParser "gopkg.in/yaml.v3"
 )
 
 const (
@@ -51,7 +51,7 @@ func ReadLocalConfig(configPath string) (*ServiceConfig, error) {
 		return nil, err
 	}
 
-	err = yaml.Unmarshal(yamlFile, config)
+	err = yamlParser.Unmarshal(yamlFile, config)
 	if err != nil {
 		return nil, err
 	}

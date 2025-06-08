@@ -14,13 +14,20 @@ message Follow {
 message Id{
   string value = 1;
 }
+
 message Status {
   int32 value = 1;
+}
+
+message GetFollowersRequest {
+  string userId = 1;
+  int32 page = 2;
+  int32 pageSize = 3;
 }
 
 // TODO
 service FollowerDB{
   rpc AddFollow(Follow) returns (Id);                          // Create
-  rpc GetFollowers(Id) returns (stream Id);                // Read
+  rpc GetFollowers(GetFollowersRequest) returns (stream Id);                // Read
   rpc Unfollow(Follow) returns (Status);               // Delete
 }
